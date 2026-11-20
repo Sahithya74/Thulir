@@ -1,0 +1,1 @@
+import{d as e}from"./src-DbUCkZj0.js";var t=5;function n(n,r){let i=Math.round(e(n.geo,r)),a=i<=n.deliveryRadiusM,o=n.prepMin+i/1e3*4;return{distanceM:i,etaMin:Math.ceil(o/t)*t,deliverable:a}}function r(e,t){return{...e,delivery:n(e,t)}}function i(e,t){return e.map(e=>r(e,t))}export{i as n,r as t};

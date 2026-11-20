@@ -1,0 +1,7 @@
+{
+  // The in-browser demo runtime (GitHub Pages build). Same rules as the server, plus DOM types.
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "lib": ["ES2023", "DOM", "DOM.Iterable"] },
+  "include": ["src/browser", "../shared/src"],
+  "exclude": ["../shared/src/**/*.test.ts"]
+}

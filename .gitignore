@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+.vite/
+coverage/
+
+# Runtime data: product photos uploaded through the owner portal
+server/uploads/

@@ -1,0 +1,64 @@
+name: Test and deploy to GitHub Pages
+
+# On every push to main: run the server and client test suites, then build the static demo (the Thulir API runs
+# inside the browser; see server/src/browser) and publish it to the gh-pages branch, which GitHub Pages serves.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
+      - run: npm ci
+        working-directory: server
+      - run: npm run typecheck
+        working-directory: server
+      - run: npm test
+        working-directory: server
+      - run: npm ci
+        working-directory: client
+      - run: npm run typecheck
+        working-directory: client
+      - run: npm test
+        working-directory: client
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
+      # The static build bundles the server's route modules, so it needs the server's dependencies too.
+      - run: npm ci
+        working-directory: server
+      - run: npm ci
+        working-directory: client
+      - run: npm run build:pages
+        working-directory: client
+      - uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: client/dist

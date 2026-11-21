@@ -3,10 +3,12 @@ export interface Slot {
   /** Height of the shelf surface this pack stands on. */
   y: number
   level: number
+  /** Width of shelf this product owns: room for several facings. */
+  w: number
 }
 
-export const SHELF_WIDTH = 12
-const ROW_GAP = 1.75
+export const SHELF_WIDTH = 14
+export const ROW_GAP = 2.05
 
 export function levelsFor(n: number): number {
   return n <= 7 ? 1 : n <= 14 ? 2 : 3
@@ -21,16 +23,16 @@ export function shelfY(level: number, levels: number): number {
 export function layoutShelf(n: number): { slots: Slot[]; levels: number; width: number } {
   const levels = levelsFor(n)
   const perRow = Math.max(1, Math.ceil(n / levels))
-  const spacing = Math.min(1.9, SHELF_WIDTH / perRow)
+  const spacing = Math.min(3.4, SHELF_WIDTH / perRow)
   const slots: Slot[] = []
   for (let i = 0; i < n; i++) {
     const level = Math.floor(i / perRow)
     const idx = i % perRow
     const count = Math.min(perRow, n - level * perRow)
-    slots.push({ x: (idx - (count - 1) / 2) * spacing, y: shelfY(level, levels), level })
+    slots.push({ x: (idx - (count - 1) / 2) * spacing, y: shelfY(level, levels), level, w: spacing })
   }
   // The unit hugs its contents: no empty acres of shelf around a handful of packs.
-  const width = Math.min(SHELF_WIDTH + 1, Math.max(6.5, (Math.min(perRow, n) - 1) * spacing + 2.6))
+  const width = Math.min(SHELF_WIDTH + 0.8, Math.max(7, Math.min(perRow, n) * spacing + 0.6))
   return { slots, levels, width }
 }
 

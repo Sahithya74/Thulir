@@ -105,9 +105,9 @@ function RouteLine() {
   }, [])
   return (
     <svg viewBox="0 0 320 36" className="mt-5 h-9 w-full max-w-sm" fill="none" aria-hidden>
-      <circle cx="10" cy="26" r="5" fill="#ee5a36" />
-      <path ref={ref} d="M10 26C70 26 80 8 150 8s90 18 160 18" stroke="#0b8079" strokeWidth="1.6" strokeLinecap="round" pathLength="1" strokeDasharray="1" strokeDashoffset="0" />
-      <path d="M302 20v-7l8-5 8 5v7z" stroke="#0f2a43" strokeWidth="1.4" strokeLinejoin="round" />
+      <circle cx="10" cy="26" r="5" fill="#d94f2b" />
+      <path ref={ref} d="M10 26C70 26 80 8 150 8s90 18 160 18" stroke="#3f7a3a" strokeWidth="1.6" strokeLinecap="round" pathLength="1" strokeDasharray="1" strokeDashoffset="0" />
+      <path d="M302 20v-7l8-5 8 5v7z" stroke="#2b1a12" strokeWidth="1.4" strokeLinejoin="round" />
     </svg>
   )
 }

@@ -90,11 +90,11 @@ export function priceTagTexture(p: ProductView, soldOut: boolean): CanvasTexture
   return make(`tag|${p.id}|${soldOut}|${p.pricePaise}|${p.mrpPaise}`, 384, 128, (g) => {
     const W = 384
     const H = 128
-    g.fillStyle = soldOut ? '#e3edf6' : p.discountPercent > 0 ? '#ffe36b' : '#ffffff'
+    g.fillStyle = soldOut ? '#f3e4c8' : p.discountPercent > 0 ? '#ffe36b' : '#ffffff'
     g.fillRect(0, 0, W, H)
-    g.fillStyle = soldOut ? '#9aa09a' : p.discountPercent > 0 ? '#c4282c' : '#0f2a43'
+    g.fillStyle = soldOut ? '#9aa09a' : p.discountPercent > 0 ? '#c4282c' : '#2b1a12'
     g.fillRect(0, 0, W, 10)
-    g.fillStyle = '#0f2a43'
+    g.fillStyle = '#2b1a12'
     g.textBaseline = 'alphabetic'
     g.textAlign = 'left'
     g.font = '800 54px "Inter Variable", Inter, system-ui, sans-serif'

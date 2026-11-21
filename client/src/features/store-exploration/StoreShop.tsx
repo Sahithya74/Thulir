@@ -167,7 +167,7 @@ export function StoreShop({ store, catalog, source }: Props) {
         {/* stage */}
         {shelfMode ? (
           <>
-            <div className="relative mt-2 h-[68dvh] min-h-[400px] max-h-[760px] overflow-hidden rounded-lg border border-line shadow-[0_18px_50px_-24px_rgba(15,42,67,0.55)]" style={{ background: theme.sky }}>
+            <div className="relative mt-2 h-[68dvh] min-h-[400px] max-h-[760px] overflow-hidden rounded-lg border border-line shadow-[0_18px_50px_-24px_rgba(43, 26, 18,0.55)]" style={{ background: theme.sky }}>
               <Suspense fallback={<div role="status" className="grid h-full place-items-center text-[0.8rem] text-charcoal/65">{t('loading')}…</div>}>
                 <StoreWalk
                   plan={plan}
@@ -190,7 +190,7 @@ export function StoreShop({ store, catalog, source }: Props) {
                 {t('walkEntrance')}
               </button>
               {hovered && (
-                <div className="pointer-events-none absolute bottom-16 left-3 max-w-[16rem] rounded-md border border-line bg-cream px-3 py-2 shadow-[0_10px_30px_-12px_rgba(15,42,67,0.45)] sm:bottom-3 sm:left-auto sm:right-[12.5rem]">
+                <div className="pointer-events-none absolute bottom-16 left-3 max-w-[16rem] rounded-md border border-line bg-cream px-3 py-2 shadow-[0_10px_30px_-12px_rgba(43, 26, 18,0.45)] sm:bottom-3 sm:left-auto sm:right-[12.5rem]">
                   <p className="font-display text-[1rem] leading-tight text-forest">{pick(hovered.name, lang)}</p>
                   <p className="text-[0.72rem] text-charcoal/65">{hovered.brand} · {hovered.unit}</p>
                   <div className="mt-1 flex items-center justify-between gap-3"><Price product={hovered} /><FreshnessChip product={hovered} /></div>

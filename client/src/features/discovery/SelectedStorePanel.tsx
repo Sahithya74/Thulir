@@ -32,7 +32,7 @@ export function SelectedStorePanel() {
   return (
     <section
       aria-label={pick(store.name, lang)}
-      className="max-h-full w-full overflow-y-auto overscroll-contain border border-line bg-cream p-5 shadow-[0_24px_60px_-28px_rgba(15,42,67,0.55)]"
+      className="max-h-full w-full overflow-y-auto overscroll-contain border border-line bg-cream p-5 shadow-[0_24px_60px_-28px_rgba(43, 26, 18,0.55)]"
     >
       <div className="flex items-start justify-between gap-3">
         <div>

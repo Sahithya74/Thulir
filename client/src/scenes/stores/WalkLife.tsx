@@ -4,7 +4,7 @@ import type { Group } from 'three'
 import { BOX, CYL, mat } from '@/scenes/neighbourhood/shared3d'
 import type { WalkPlan } from './walkLayout'
 
-const SHIRTS = ['#ee5a36', '#0b8079', '#ffc233', '#3b6fd4', '#8a4fd0', '#e0457b', '#2f9e5b']
+const SHIRTS = ['#d94f2b', '#3f7a3a', '#f5b82e', '#3b6fd4', '#8a4fd0', '#e0457b', '#2f9e5b']
 const SKIN = ['#8a5a3c', '#a8714a', '#6d4228', '#c08a5e']
 const HAIR = '#1b1410'
 
@@ -61,7 +61,7 @@ function Shopper({ spec, reducedMotion }: { spec: Spec; reducedMotion: boolean }
       <mesh geometry={BOX} material={mat(spec.skin)} position={[0.36, 1.9, 0.05]} scale={[0.12, 0.85, 0.14]} />
       <mesh geometry={BOX} material={mat(spec.skin)} position={[-0.36, 1.9, 0.05]} scale={[0.12, 0.85, 0.14]} />
       {spec.basket && (
-        <mesh geometry={BOX} material={mat(spec.shirt === '#ee5a36' ? '#0b8079' : '#ee5a36')} position={[0.5, 1.2, 0.2]} scale={[0.5, 0.3, 0.4]} />
+        <mesh geometry={BOX} material={mat(spec.shirt === '#d94f2b' ? '#3f7a3a' : '#d94f2b')} position={[0.5, 1.2, 0.2]} scale={[0.5, 0.3, 0.4]} />
       )}
     </group>
   )

@@ -251,7 +251,7 @@ export default function CheckoutPage() {
                 <div className="grid gap-2">
                   {methods?.map((m) => (
                     <label key={m.id} className={`flex cursor-pointer items-start gap-3 border px-4 py-3 ${method === m.id ? 'border-forest bg-limestone' : 'border-forest/30 hover:border-forest/60'}`}>
-                      <input type="radio" name="pay" value={m.id} checked={method === m.id} onChange={() => setMethod(m.id)} className="mt-1 accent-[#0f2a43]" />
+                      <input type="radio" name="pay" value={m.id} checked={method === m.id} onChange={() => setMethod(m.id)} className="mt-1 accent-[#2b1a12]" />
                       <span>
                         <span className="flex flex-wrap items-center gap-2 text-[0.98rem] font-medium text-forest">
                           {m.label}

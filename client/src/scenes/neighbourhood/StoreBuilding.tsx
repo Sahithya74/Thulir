@@ -111,11 +111,11 @@ function Supermarket({ plot, theme, reducedMotion }: { plot: Plot; theme: Theme;
       {/* forecourt + bay markings */}
       <mesh geometry={PLANE} material={mat('#bdb8a8')} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, d / 2 + 3.6]} scale={[w + 3, 7.2, 1]} receiveShadow />
       {Array.from({ length: 9 }, (_, i) => (
-        <mesh key={i} geometry={PLANE} material={mat('#f4f8fc')} rotation={[-Math.PI / 2, 0, 0]} position={[-w / 2 + 1.5 + i * 1.7, 0.04, d / 2 + 5.2]} scale={[0.06, 3, 1]} />
+        <mesh key={i} geometry={PLANE} material={mat('#fff6e5')} rotation={[-Math.PI / 2, 0, 0]} position={[-w / 2 + 1.5 + i * 1.7, 0.04, d / 2 + 5.2]} scale={[0.06, 3, 1]} />
       ))}
       <Car x={-w / 2 + 2.3} z={d / 2 + 5.2} color="#d9d4c4" rot={Math.PI / 2} />
-      <Car x={-w / 2 + 4.0} z={d / 2 + 5.2} color="#0b8079" rot={Math.PI / 2} />
-      <Car x={w / 2 - 2.2} z={d / 2 + 5.2} color="#ee5a36" rot={Math.PI / 2} />
+      <Car x={-w / 2 + 4.0} z={d / 2 + 5.2} color="#3f7a3a" rot={Math.PI / 2} />
+      <Car x={w / 2 - 2.2} z={d / 2 + 5.2} color="#d94f2b" rot={Math.PI / 2} />
       <Awning w={w - 6} z={d / 2 + 0.05} theme={theme} reducedMotion={reducedMotion} />
     </>
   )
@@ -149,7 +149,7 @@ function FruitHall({ plot, theme }: { plot: Plot; theme: Theme }) {
         <mesh key={i} geometry={CYL} material={mat('#8f938b')} position={[-w / 2 + 0.5 + (i * (w - 1)) / (cols - 1), GF / 2, d / 2 - 0.2]} scale={[0.14, GF, 0.14]} castShadow />
       ))}
       <mesh geometry={BOX} material={mat(theme.band)} position={[0, GF + 0.15, d / 2 + 0.6]} scale={[w + 0.6, 0.3, d * 0.2 + 1.8]} castShadow />
-      <mesh geometry={BOX} material={mat('#f4f8fc')} position={[0, GF + 0.7, d / 2 + 1.5]} scale={[w - 1, 0.9, 0.14]} />
+      <mesh geometry={BOX} material={mat('#fff6e5')} position={[0, GF + 0.7, d / 2 + 1.5]} scale={[w - 1, 0.9, 0.14]} />
       {Array.from({ length: 14 }, (_, i) => {
         const row = i % 7
         const level = Math.floor(i / 7)
@@ -174,7 +174,7 @@ function Bakery({ plot, theme, reducedMotion }: { plot: Plot; theme: Theme; redu
       {/* two café tables on the pavement */}
       {[-1.4, 0.9].map((o) => (
         <group key={o} position={[o - w * 0.1, 0, d / 2 + 1.6]}>
-          <mesh geometry={CYL} material={mat('#f4f8fc')} position={[0, 0.8, 0]} scale={[0.5, 0.06, 0.5]} castShadow />
+          <mesh geometry={CYL} material={mat('#fff6e5')} position={[0, 0.8, 0]} scale={[0.5, 0.06, 0.5]} castShadow />
           <mesh geometry={CYL} material={mat(C.charcoal)} position={[0, 0.4, 0]} scale={[0.06, 0.8, 0.06]} />
         </group>
       ))}
@@ -203,7 +203,7 @@ function Household({ plot, theme, reducedMotion }: { plot: Plot; theme: Theme; r
       <Awning w={w} z={d / 2 + 0.05} theme={theme} reducedMotion={reducedMotion} />
       {/* display racks seen through the glass */}
       {[-2.4, 0, 2.4].map((o) => (
-        <mesh key={o} geometry={BOX} material={mat('#e3edf6', { emissive: '#ffe3b0', emissiveIntensity: 0.2 })} position={[o, 1.5, d / 2 - 0.1]} scale={[1.6, 1.8, 0.1]} />
+        <mesh key={o} geometry={BOX} material={mat('#f3e4c8', { emissive: '#ffe3b0', emissiveIntensity: 0.2 })} position={[o, 1.5, d / 2 - 0.1]} scale={[1.6, 1.8, 0.1]} />
       ))}
     </>
   )

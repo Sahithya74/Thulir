@@ -49,7 +49,7 @@ function Row({ d, policies, onSaved }: { d: Department; policies: OwnerStorePoli
             </Field>
           </div>
           <label className="flex min-h-11 items-center gap-2">
-            <input type="checkbox" checked={sell} onChange={(e) => setSell(e.target.checked)} className="h-5 w-5 accent-[#0f2a43]" />
+            <input type="checkbox" checked={sell} onChange={(e) => setSell(e.target.checked)} className="h-5 w-5 accent-[#2b1a12]" />
             Keep selling stock that is expiring soon (customers see a short-shelf-life note)
           </label>
         </ActionForm>

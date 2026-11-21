@@ -10,7 +10,7 @@ const MODES = {
   // Opening shot: low, warm sun.
   golden: { sun: '#ffd9ae', sunI: 2.6, pos: [34, 18, 20], sky: '#ffe9d2', hemiI: 0.8, bg: '#f6dcc2' },
   // Settled daylight: higher, neutral sun.
-  day: { sun: '#fff4df', sunI: 2.3, pos: [22, 36, 16], sky: '#e2f2ff', hemiI: 1.0, bg: '#bfe3f8' },
+  day: { sun: '#fff4df', sunI: 2.3, pos: [22, 36, 16], sky: '#fff1dc', hemiI: 1.0, bg: '#f1dcc0' },
 } as const
 
 interface Props {

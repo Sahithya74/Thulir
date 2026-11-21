@@ -41,7 +41,7 @@ export function District({ shadows }: { shadows: boolean }) {
       {/* avenue */}
       <mesh geometry={PLANE} material={mat(C.asphalt, { roughness: 0.95 })} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} scale={[SPAN * 2, AVENUE_HALF_WIDTH * 2, 1]} receiveShadow={shadows} />
       {Array.from({ length: 28 }, (_, i) => (
-        <mesh key={i} geometry={PLANE} material={mat('#e3edf6')} rotation={[-Math.PI / 2, 0, 0]} position={[-SPAN + 2 + i * 4.5, 0.03, 0]} scale={[2, 0.14, 1]} />
+        <mesh key={i} geometry={PLANE} material={mat('#f3e4c8')} rotation={[-Math.PI / 2, 0, 0]} position={[-SPAN + 2 + i * 4.5, 0.03, 0]} scale={[2, 0.14, 1]} />
       ))}
 
       {/* sidewalks with a curb */}
@@ -58,7 +58,7 @@ export function District({ shadows }: { shadows: boolean }) {
       {/* zebra crossings at both ends of the plaza */}
       {[-9.4, 9.4].map((x) =>
         stripes.map((z) => (
-          <mesh key={`${x}-${z}`} geometry={PLANE} material={mat('#f4f8fc')} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.18, z]} scale={[1.1, 0.42, 1]} />
+          <mesh key={`${x}-${z}`} geometry={PLANE} material={mat('#fff6e5')} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.18, z]} scale={[1.1, 0.42, 1]} />
         )),
       )}
 
@@ -95,9 +95,9 @@ export function District({ shadows }: { shadows: boolean }) {
         {/* arcade colonnade at street level */}
         <mesh geometry={BOX} material={mat('#2a3836', { roughness: 0.2, emissive: '#ffcf8f', emissiveIntensity: 0.3 })} position={[0, 1.6, complex.d / 2 + 0.05]} scale={[complex.w - 1.2, 3, 0.1]} />
         {[-5.5, -2.75, 0, 2.75, 5.5].map((x) => (
-          <mesh key={x} geometry={BOX} material={mat('#e3edf6')} position={[x, 1.7, complex.d / 2 + 0.6]} scale={[0.35, 3.4, 0.35]} castShadow={shadows} />
+          <mesh key={x} geometry={BOX} material={mat('#f3e4c8')} position={[x, 1.7, complex.d / 2 + 0.6]} scale={[0.35, 3.4, 0.35]} castShadow={shadows} />
         ))}
-        <mesh geometry={BOX} material={mat('#e3edf6')} position={[0, 3.55, complex.d / 2 + 0.6]} scale={[complex.w, 0.3, 1.5]} castShadow={shadows} />
+        <mesh geometry={BOX} material={mat('#f3e4c8')} position={[0, 3.55, complex.d / 2 + 0.6]} scale={[complex.w, 0.3, 1.5]} castShadow={shadows} />
         <mesh geometry={BOX} material={mat(C.forest)} position={[0, complex.h + 0.9, 0]} scale={[complex.w * 0.5, 1.8, 0.3]} />
         <mesh geometry={BOX} material={mat(C.forest)} position={[0, complex.h + 0.08, 0]} scale={[complex.w + 0.3, 0.2, complex.d + 0.3]} />
       </group>

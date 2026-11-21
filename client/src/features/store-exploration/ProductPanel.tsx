@@ -43,7 +43,7 @@ export function ProductPanel({ productId, onSelectLocal, currentStoreId, onClose
   const { state, retry } = useAsync((signal) => catalogApi.product(productId, signal), [productId])
 
   return (
-    <section data-product-panel aria-label={t('productInfo')} className="flex h-full min-h-0 flex-col border border-line bg-cream shadow-[0_24px_60px_-28px_rgba(15,42,67,0.5)]">
+    <section data-product-panel aria-label={t('productInfo')} className="flex h-full min-h-0 flex-col border border-line bg-cream shadow-[0_24px_60px_-28px_rgba(43, 26, 18,0.5)]">
       <div className="flex shrink-0 items-center justify-between border-b border-line px-4 py-2.5">
         <span className="eyebrow">{t('productInfo')}</span>
         <button type="button" onClick={onClose} aria-label={t('closeDetails')} className="tap -mr-2 px-2 text-xl text-forest/70 hover:text-forest">

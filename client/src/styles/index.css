@@ -4,18 +4,18 @@
 @import '@fontsource/noto-sans-tamil/400.css';
 @import '@fontsource/noto-sans-tamil/600.css';
 
-/* THULIR design tokens — bright, fresh and professional: deep ink, teal, coral and sunshine. */
+/* THULIR design tokens — warm market: cocoa ink, turmeric, saffron, terracotta and leaf green. */
 @theme {
-  --color-forest: #0f2a43;
-  --color-limestone: #e3edf6;
-  --color-botanical: #7fd3c1;
-  --color-terracotta: #ee5a36;
-  --color-olive: #0b8079;
-  --color-cream: #f4f8fc;
-  --color-charcoal: #1b2b3c;
+  --color-forest: #2b1a12;
+  --color-limestone: #f3e4c8;
+  --color-botanical: #a9cf8a;
+  --color-terracotta: #d94f2b;
+  --color-olive: #3f7a3a;
+  --color-cream: #fff6e5;
+  --color-charcoal: #3a2a20;
   --color-white: #ffffff;
-  --color-sun: #ffc233;
-  --color-line: rgb(15 42 67 / 0.14);
+  --color-sun: #f5b82e;
+  --color-line: rgb(43 26 18 / 0.14);
 
   --font-display: 'Fraunces Variable', 'Noto Sans Tamil', Georgia, serif;
   --font-sans: 'Inter Variable', 'Noto Sans Tamil', system-ui, sans-serif;

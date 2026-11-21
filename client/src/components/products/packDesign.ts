@@ -307,7 +307,7 @@ export function designFor(p: PackSource): PackDesign {
   }
   if (!partial.kind) partial = { ...DEPT_FALLBACK[p.department](p.shape), ...partial }
 
-  const fromColor = p.color.startsWith('#') ? p.color : '#ee5a36'
+  const fromColor = p.color.startsWith('#') ? p.color : '#d94f2b'
   const base = partial.base ?? (partial.kind === 'produce' ? PRODUCE_BASE[partial.produce ?? 'mixed'][0] : fromColor)
   const base2 = partial.base2 ?? (partial.kind === 'produce' ? PRODUCE_BASE[partial.produce ?? 'mixed'][1] : shade(base, -0.25))
   const accent = partial.accent ?? shade(base, -0.55)

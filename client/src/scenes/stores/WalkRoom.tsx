@@ -121,14 +121,14 @@ function Checkout({ x, z, theme, index, reducedMotion }: { x: number; z: number;
     <group position={[x, 0, z]}>
       {/* counter */}
       <mesh geometry={BOX} material={mat(theme.trim)} position={[0, 0.9, 0]} scale={[5.6, 1.8, 1.9]} />
-      <mesh geometry={BOX} material={mat('#f4f8fc', { roughness: 0.3 })} position={[0, 1.84, 0]} scale={[5.7, 0.12, 2.0]} />
+      <mesh geometry={BOX} material={mat('#fff6e5', { roughness: 0.3 })} position={[0, 1.84, 0]} scale={[5.7, 0.12, 2.0]} />
       <mesh geometry={BOX} material={mat(theme.accent)} position={[0, 1.0, 0.97]} scale={[5.6, 0.4, 0.05]} />
       {/* belt with a few items sliding along */}
       <mesh geometry={BOX} material={mat('#2a3340')} position={[-0.6, 1.93, 0.1]} scale={[3.2, 0.05, 1.1]} />
       <group ref={belt} position={[0, 2.2, 0.1]}>
-        <mesh geometry={BOX} material={mat('#ee5a36')} position={[-0.7, 0, 0]} scale={[0.4, 0.5, 0.3]} />
-        <mesh geometry={BOX} material={mat('#ffc233')} position={[0.1, -0.05, 0.1]} scale={[0.5, 0.4, 0.3]} />
-        <mesh geometry={CYL} material={mat('#0b8079')} position={[0.9, -0.02, -0.1]} scale={[0.22, 0.5, 0.22]} />
+        <mesh geometry={BOX} material={mat('#d94f2b')} position={[-0.7, 0, 0]} scale={[0.4, 0.5, 0.3]} />
+        <mesh geometry={BOX} material={mat('#f5b82e')} position={[0.1, -0.05, 0.1]} scale={[0.5, 0.4, 0.3]} />
+        <mesh geometry={CYL} material={mat('#3f7a3a')} position={[0.9, -0.02, -0.1]} scale={[0.22, 0.5, 0.22]} />
       </group>
       {/* till screen */}
       <mesh geometry={BOX} material={mat('#10161d')} position={[1.9, 2.25, 0.2]} rotation={[-0.3, 0, 0]} scale={[0.9, 0.6, 0.08]} />
@@ -137,10 +137,10 @@ function Checkout({ x, z, theme, index, reducedMotion }: { x: number; z: number;
       </mesh>
       {/* cashier */}
       <group ref={cashier} position={[1.2, 0, -1.7]}>
-        <mesh geometry={CYL} material={mat(index ? '#ee5a36' : '#0b8079')} position={[0, 2.35, 0]} scale={[0.5, 1.5, 0.4]} />
+        <mesh geometry={CYL} material={mat(index ? '#d94f2b' : '#3f7a3a')} position={[0, 2.35, 0]} scale={[0.5, 1.5, 0.4]} />
         <mesh geometry={BOX} material={mat('#8a5a3c')} position={[0.4, 2.5, 0.35]} scale={[0.18, 0.7, 0.18]} />
         <mesh geometry={CYL} material={mat('#8a5a3c')} position={[0, 3.45, 0]} scale={[0.34, 0.42, 0.34]} />
-        <mesh geometry={CYL} material={mat('#1b2b3c')} position={[0, 3.62, 0]} scale={[0.36, 0.14, 0.36]} />
+        <mesh geometry={CYL} material={mat('#3a2a20')} position={[0, 3.62, 0]} scale={[0.36, 0.14, 0.36]} />
       </group>
       {/* lane sign */}
       <mesh geometry={BOX} material={glow(theme.accent, 1)} position={[0, 5.5, 0]} scale={[2.2, 0.8, 0.12]} />
@@ -156,7 +156,7 @@ function Trolleys({ x, z, theme }: { x: number; z: number; theme: StoreTheme }) 
         <group key={i} position={[i * 0.5, 0, i * -0.18]}>
           <mesh geometry={BOX} material={mat('#c5ced8', { metalness: 0.7, roughness: 0.3 })} position={[0, 1.2, 0]} scale={[1.3, 0.75, 0.8]} />
           <mesh geometry={BOX} material={mat(theme.accent)} position={[0, 1.65, 0.45]} scale={[1.3, 0.1, 0.08]} />
-          <mesh geometry={BOX} material={mat('#1b2b3c')} position={[0, 0.5, 0]} scale={[1.0, 0.1, 0.7]} />
+          <mesh geometry={BOX} material={mat('#3a2a20')} position={[0, 0.5, 0]} scale={[1.0, 0.1, 0.7]} />
         </group>
       ))}
     </group>

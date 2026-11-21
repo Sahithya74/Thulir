@@ -29,22 +29,22 @@ export function MiniMap({ plan, accent, label }: { plan: WalkPlan; accent: strin
       onClick={onClick}
       className="w-36 cursor-pointer rounded-md border border-white/40 bg-white/80 shadow-lg backdrop-blur sm:w-44"
     >
-      <rect x={-plan.width / 2} y={0} width={plan.width} height={plan.depth} fill="#eef4fa" stroke="#0f2a43" strokeWidth={0.5} />
+      <rect x={-plan.width / 2} y={0} width={plan.width} height={plan.depth} fill="#eef4fa" stroke="#2b1a12" strokeWidth={0.5} />
       {plan.faces
         .filter((f) => f.kind === 'wall')
         .map((f) => (
-          <rect key={f.index} x={f.x - f.length / 2} y={0.3} width={f.length} height={1.4} fill="#0f2a43" opacity={0.75} rx={0.3} />
+          <rect key={f.index} x={f.x - f.length / 2} y={0.3} width={f.length} height={1.4} fill="#2b1a12" opacity={0.75} rx={0.3} />
         ))}
       {plan.gondolas.map((g, i) => (
         <rect key={i} x={g.x - g.length / 2} y={g.z - 1.3} width={g.length} height={2.6} fill={accent} opacity={0.85} rx={0.4} />
       ))}
       {plan.counters.map((c, i) => (
-        <rect key={i} x={c.x - 2.8} y={c.z - 1} width={5.6} height={2} fill="#0f2a43" opacity={0.5} rx={0.3} />
+        <rect key={i} x={c.x - 2.8} y={c.z - 1} width={5.6} height={2} fill="#2b1a12" opacity={0.5} rx={0.3} />
       ))}
       <rect x={-3.2} y={plan.depth - 0.5} width={6.4} height={1} fill="#38b0e2" />
       <g transform={`translate(${pose.x} ${pose.z}) rotate(${deg})`}>
-        <path d="M0 0 L-5 -9 A10 10 0 0 1 5 -9 Z" fill="#ee5a36" opacity={0.28} />
-        <circle r={1.5} fill="#ee5a36" stroke="#fff" strokeWidth={0.5} />
+        <path d="M0 0 L-5 -9 A10 10 0 0 1 5 -9 Z" fill="#d94f2b" opacity={0.28} />
+        <circle r={1.5} fill="#d94f2b" stroke="#fff" strokeWidth={0.5} />
       </g>
     </svg>
   )

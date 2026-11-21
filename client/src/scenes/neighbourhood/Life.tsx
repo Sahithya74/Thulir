@@ -11,7 +11,7 @@ function rng(seed: number) {
   }
 }
 
-const SHIRTS = ['#ee5a36', '#0b8079', '#ffc233', '#3b6fd4', '#8a4fd0', '#e0457b', '#2f9e5b', '#ffffff', '#1b2b3c']
+const SHIRTS = ['#d94f2b', '#3f7a3a', '#f5b82e', '#3b6fd4', '#8a4fd0', '#e0457b', '#2f9e5b', '#ffffff', '#3a2a20']
 const SKIN = ['#8a5a3c', '#a8714a', '#6d4228', '#c08a5e', '#b07b55']
 const LOOP = 120
 
@@ -158,7 +158,7 @@ export function Birds({ count, reducedMotion }: { count: number; reducedMotion: 
       }
     })
   })
-  const m = mat('#1b2b3c')
+  const m = mat('#3a2a20')
   return (
     <group>
       {specs.map((_, i) => (

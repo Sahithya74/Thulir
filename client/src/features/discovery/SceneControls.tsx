@@ -22,7 +22,7 @@ export function SceneControls({ onSearch }: { onSearch: () => void }) {
   return (
     <div className="pointer-events-none flex flex-col items-center gap-2">
       {!selected && <p className="pointer-events-none hidden text-[0.72rem] tracking-wide text-forest/70 sm:block">{t('dragHint')}</p>}
-      <div role="toolbar" aria-label="3D view controls" className="pointer-events-auto flex flex-wrap items-stretch divide-x divide-forest/15 border border-line bg-cream shadow-[0_14px_36px_-18px_rgba(15,42,67,0.5)]">
+      <div role="toolbar" aria-label="3D view controls" className="pointer-events-auto flex flex-wrap items-stretch divide-x divide-forest/15 border border-line bg-cream shadow-[0_14px_36px_-18px_rgba(43, 26, 18,0.5)]">
         <Btn onClick={() => cameraBus.emit('explore')} label={t('explore')}>
           {t('explore')}
         </Btn>

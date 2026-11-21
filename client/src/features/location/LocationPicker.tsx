@@ -134,7 +134,7 @@ export function LocationPicker() {
       aria-labelledby="loc-title"
       onClose={close}
       onClick={(e) => e.target === dialog.current && close()}
-      className="m-auto max-h-[92dvh] w-[min(560px,94vw)] overflow-y-auto border border-line bg-cream p-0 text-charcoal shadow-[0_40px_90px_-30px_rgba(15,42,67,0.7)] backdrop:bg-forest/60"
+      className="m-auto max-h-[92dvh] w-[min(560px,94vw)] overflow-y-auto border border-line bg-cream p-0 text-charcoal shadow-[0_40px_90px_-30px_rgba(43, 26, 18,0.7)] backdrop:bg-forest/60"
     >
       <div className="flex justify-end px-5 pt-4 sm:px-6">
         <LanguageSwitch />

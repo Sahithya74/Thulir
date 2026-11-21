@@ -2,17 +2,17 @@ import { CanvasTexture, RepeatWrapping, SRGBColorSpace } from 'three'
 
 /** Scene colours — the brand palette, nudged slightly for lit materials. */
 export const C = {
-  forest: '#0f2a43',
-  limestone: '#e3edf6',
-  botanical: '#7fd3c1',
-  terracotta: '#ee5a36',
-  olive: '#0b8079',
-  cream: '#f4f8fc',
-  charcoal: '#1b2b3c',
-  asphalt: '#37414f',
-  paving: '#e4ecef',
-  ground: '#d3e6e1',
-  glass: '#2c3a38',
+  forest: '#2b1a12',
+  limestone: '#f3e4c8',
+  botanical: '#a9cf8a',
+  terracotta: '#d94f2b',
+  olive: '#3f7a3a',
+  cream: '#fff6e5',
+  charcoal: '#3a2a20',
+  asphalt: '#3b3430',
+  paving: '#eadfca',
+  ground: '#e6d8bd',
+  glass: '#3a2e28',
 }
 
 /** Facade texture: wall with a regular window grid. Repeat is set per use. */
@@ -49,7 +49,7 @@ export function makePavingTexture(): CanvasTexture {
   c.width = size
   c.height = size
   const g = c.getContext('2d')!
-  g.fillStyle = '#dcd6c6'
+  g.fillStyle = '#e2d3b4'
   g.fillRect(0, 0, size, size)
   g.strokeStyle = 'rgba(60,60,50,0.18)'
   g.lineWidth = 2
@@ -63,12 +63,12 @@ export function makePavingTexture(): CanvasTexture {
 
 /** Shop colour by category: the same hue on the awning, fascia, beacon and (inside) the signage. */
 export const CAT_COLOR = {
-  supermarket: '#0b8079',
-  provision: '#ee5a36',
+  supermarket: '#3f7a3a',
+  provision: '#d94f2b',
   fruit_veg: '#2f9e5b',
   bakery: '#e0457b',
-  dairy: '#2f9fd6',
-  household: '#5b6cff',
+  dairy: '#2fa4c4',
+  household: '#7a4fd0',
 } as const
 
 /** Illuminated shop name board (English over Tamil). */

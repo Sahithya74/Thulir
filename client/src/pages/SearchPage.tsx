@@ -91,7 +91,7 @@ export default function SearchPage() {
           </div>
 
           {showSuggest && suggest.state.status === 'ready' && suggest.state.data.length > 0 && (
-            <ul aria-label={t('suggestionsLabel')} className="absolute inset-x-0 top-full z-20 border border-t-0 border-forest/30 bg-white shadow-[0_18px_36px_-20px_rgba(15,42,67,0.5)]">
+            <ul aria-label={t('suggestionsLabel')} className="absolute inset-x-0 top-full z-20 border border-t-0 border-forest/30 bg-white shadow-[0_18px_36px_-20px_rgba(43, 26, 18,0.5)]">
               {suggest.state.data.map((s, i) => (
                 <li key={`${s.kind}-${s.text}-${i}`}>
                   <button type="button" onClick={() => pickSuggestion(s)} className="tap flex w-full items-center gap-3 px-3 text-left text-[0.9rem] hover:bg-limestone">

@@ -8,7 +8,7 @@ const SHIRTS = ['#d94f2b', '#3f7a3a', '#f5b82e', '#3b6fd4', '#8a4fd0', '#e0457b'
 const SKIN = ['#8a5a3c', '#a8714a', '#6d4228', '#c08a5e']
 const HAIR = '#1b1410'
 
-interface Spec {
+export interface Spec {
   lane: number
   from: number
   to: number
@@ -19,7 +19,23 @@ interface Spec {
   basket: boolean
 }
 
-/** One shopper: walks an aisle lane back and forth, pausing now and then to look at the shelves. */
+/** Where a shopper is along their lane at time `time`, which way they face, and whether they are mid-stride. */
+export function laneAt(spec: Spec, time: number, reducedMotion: boolean): { x: number; yaw: number; walking: number } {
+  const span = spec.to - spec.from
+  const t = reducedMotion ? spec.phase : time * spec.speed + spec.phase
+  const cycle = (t / span) % 2
+  const u = cycle < 1 ? cycle : 2 - cycle
+  // ease in and out at the ends, and linger mid-aisle
+  const e = u * u * (3 - 2 * u)
+  const pause = Math.sin(u * Math.PI * 4)
+  return {
+    x: spec.from + span * (0.88 * e + 0.12 * u),
+    yaw: cycle < 1 ? Math.PI / 2 : -Math.PI / 2,
+    walking: reducedMotion ? 0 : Math.abs(pause) > 0.18 ? 1 : 0,
+  }
+}
+
+/** One simple (low-detail) shopper: walks an aisle lane back and forth, pausing now and then. */
 function Shopper({ spec, reducedMotion }: { spec: Spec; reducedMotion: boolean }) {
   const g = useRef<Group>(null)
   const legL = useRef<Group>(null)
@@ -68,26 +84,29 @@ function Shopper({ spec, reducedMotion }: { spec: Spec; reducedMotion: boolean }
 }
 
 /** A handful of shoppers drifting down the aisles so the store never looks frozen. */
-export function Shoppers({ plan, reducedMotion, count }: { plan: WalkPlan; reducedMotion: boolean; count: number }) {
-  const specs = useMemo<Spec[]>(() => {
-    const out: Spec[] = []
-    const lanes = plan.lanesZ
-    for (let i = 0; i < count; i++) {
-      const lane = lanes[i % lanes.length] + (i % 2 ? 0.7 : -0.7)
-      const half = plan.width / 2 - 3
-      out.push({
-        lane,
-        from: -half + (i % 3),
-        to: half - ((i * 2) % 3),
-        speed: 0.55 + ((i * 37) % 10) / 30,
-        phase: i * 7.3,
-        shirt: SHIRTS[i % SHIRTS.length],
-        skin: SKIN[i % SKIN.length],
-        basket: i % 2 === 0,
-      })
-    }
-    return out
-  }, [plan, count])
+export function makeSpecs(plan: WalkPlan, count: number): Spec[] {
+  const out: Spec[] = []
+  const lanes = plan.lanesZ
+  for (let i = 0; i < count; i++) {
+    const lane = lanes[i % lanes.length] + (i % 2 ? 0.7 : -0.7)
+    const half = plan.width / 2 - 3
+    out.push({
+      lane,
+      from: -half + (i % 3),
+      to: half - ((i * 2) % 3),
+      speed: 0.55 + ((i * 37) % 10) / 30,
+      phase: i * 7.3,
+      shirt: SHIRTS[i % SHIRTS.length],
+      skin: SKIN[i % SKIN.length],
+      basket: i % 2 === 0,
+    })
+  }
+  return out
+}
+
+/** Simple figures used on low-power devices and if the character models cannot be loaded. */
+export function SimpleShoppers({ plan, reducedMotion, count }: { plan: WalkPlan; reducedMotion: boolean; count: number }) {
+  const specs = useMemo(() => makeSpecs(plan, count), [plan, count])
   return (
     <group>
       {specs.map((s, i) => (

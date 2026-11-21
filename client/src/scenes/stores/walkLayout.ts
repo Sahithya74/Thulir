@@ -60,7 +60,17 @@ export interface Gondola {
   back: number | null
 }
 
+/** Free-standing displays on the shop floor (not shelving). */
+export interface Fixture {
+  kind: 'produce'
+  x: number
+  z: number
+  w: number
+  d: number
+}
+
 export interface WalkPlan {
+  fixtures: Fixture[]
   width: number
   depth: number
   faces: Face[]
@@ -86,6 +96,20 @@ export function slotWorld(face: Face, slot: Slot) {
   const p = rot(slot.x, 0, face.rotY)
   const n = rot(0, 1, face.rotY)
   return { x: face.x + p.x, z: face.z + p.z, nx: n.x, nz: n.z, y: slot.y }
+}
+
+/**
+ * A real shop shows the same lines in several places (end caps, both sides of an aisle). Repeat the range, shifted a
+ * little each time so the repeated runs are not identical, until it fills a believable floor.
+ */
+export function padProducts(products: ProductView[], copies: number): ProductView[] {
+  if (copies <= 1 || products.length === 0) return products
+  const out: ProductView[] = []
+  for (let k = 0; k < copies; k++) {
+    const shift = (k * 3) % products.length
+    out.push(...products.slice(shift), ...products.slice(0, shift))
+  }
+  return out
 }
 
 export function planStore(products: ProductView[]): WalkPlan {
@@ -121,7 +145,7 @@ export function planStore(products: ProductView[]): WalkPlan {
   const wallFaces = faceCount === 1 ? 1 : faceCount === 2 ? 2 : faceCount % 2 === 1 ? 1 : 2
   const gondolaSides = faceCount - wallFaces
   const gondolaCount = Math.ceil(gondolaSides / 2)
-  const cols = gondolaCount > 3 ? 2 : 1
+  const cols = gondolaCount >= 3 ? 2 : 1
   const rows = Math.ceil(gondolaCount / cols)
   const width = faceCount === 1 ? 22 : cols === 2 ? 38 : 28
 
@@ -187,7 +211,11 @@ export function planStore(products: ProductView[]): WalkPlan {
   lanesZ.push(frontShelf + AISLE / 2)
 
   // checkout zone and entrance
-  const depth = Math.max(frontShelf + AISLE + 7.5, 16.5)
+  const roomy = products.length >= 10
+  const depth = Math.max(frontShelf + AISLE + (roomy ? 12.5 : 7.5), 16.5)
+  // open produce tables between the aisles and the tills, where a real shop puts its freshest stock
+  const fixtures: Fixture[] = roomy ? [-1, 1].map((s2) => ({ kind: 'produce' as const, x: s2 * width * 0.22, z: frontShelf + AISLE + 2.4, w: 6.2, d: 2.8 })) : []
+  for (const f of fixtures) blocks.push({ minX: f.x - f.w / 2 - 0.3, maxX: f.x + f.w / 2 + 0.3, minZ: f.z - f.d / 2 - 0.3, maxZ: f.z + f.d / 2 + 0.3 })
   const counters = [{ x: -width / 2 + 6.5, z: depth - 4.2 }, { x: width / 2 - 6.5, z: depth - 4.2 }]
   for (const c of counters) blocks.push({ minX: c.x - 2.9, maxX: c.x + 2.9, minZ: c.z - 1.1, maxZ: c.z + 1.1 })
   const lanesX = cols === 2 ? [-width / 2 + 2.3, 0, width / 2 - 2.3] : [-width / 2 + 2.3, width / 2 - 2.3]
@@ -196,12 +224,13 @@ export function planStore(products: ProductView[]): WalkPlan {
   const deptFace = new Map<Department, number>()
   for (const f of faces) {
     f.slots.forEach((s, i) => {
-      where.set(s.product.id, { face: f.index, slot: i })
+      if (!where.has(s.product.id)) where.set(s.product.id, { face: f.index, slot: i })
       if (!deptFace.has(s.product.department as Department)) deptFace.set(s.product.department as Department, f.index)
     })
   }
 
   return {
+    fixtures,
     width,
     depth,
     faces,

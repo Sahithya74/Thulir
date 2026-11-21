@@ -8,7 +8,8 @@ import { PackMesh, disposePackMaterials } from './PackMesh'
 import { disposePackTextures } from './packTexture'
 import type { StoreTheme } from './themes'
 import { AisleSigns, Bay, GondolaFrame, WalkRoom } from './WalkRoom'
-import { Shoppers } from './WalkLife'
+import { Shoppers } from './People'
+import { SimpleShoppers } from './WalkLife'
 import { WalkRig } from './WalkRig'
 import { planStore, type WalkPlan } from './walkLayout'
 import { walkCmd } from './walkBus'
@@ -77,7 +78,7 @@ function Scene({ plan, theme, storeName, selectedId, hoveredId, reducedMotion, t
           <Bay face={face} theme={theme} />
           {face.slots.map((s, i) => (
             <PackMesh
-              key={s.product.id}
+              key={`${face.index}-${i}`}
               product={s.product}
               x={s.x}
               y={s.y}
@@ -93,7 +94,7 @@ function Scene({ plan, theme, storeName, selectedId, hoveredId, reducedMotion, t
           ))}
         </group>
       ))}
-      <Shoppers plan={plan} reducedMotion={reducedMotion} count={low ? 3 : Math.min(7, 3 + plan.lanesZ.length * 2)} />
+      {low ? <SimpleShoppers plan={plan} reducedMotion={reducedMotion} count={3} /> : <Shoppers plan={plan} reducedMotion={reducedMotion} count={Math.min(6, 3 + plan.lanesZ.length * 2)} />}
       <WalkRig plan={plan} selectedId={selectedId} reducedMotion={reducedMotion} onNearDept={onNearDept} />
     </>
   )

@@ -5,7 +5,7 @@ import { FreshnessChip, Price, ProductCard } from '@/components/products/Product
 import { useIsSmall, useQualityTier, useWebGLSupport } from '@/hooks/useDevice'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { STORE_THEMES } from '@/scenes/stores/themes'
-import { planStore } from '@/scenes/stores/walkLayout'
+import { padProducts, planStore } from '@/scenes/stores/walkLayout'
 import { walkCmd } from '@/scenes/stores/walkBus'
 import { pick, useLang, useT } from '@/services/i18n'
 import type { DataSource } from '@/services/catalogApi'
@@ -94,8 +94,10 @@ export function StoreShop({ store, catalog, source }: Props) {
   const brands = useMemo(() => brandsOf(catalog.products), [catalog.products])
   const walkProducts = useMemo(() => {
     const order = new Map(depts.map((d, i) => [d.id, i]))
-    return [...catalog.products].sort((a, b) => (order.get(a.department) ?? 99) - (order.get(b.department) ?? 99))
-  }, [catalog.products, depts])
+    const sorted = [...catalog.products].sort((a, b) => (order.get(a.department) ?? 99) - (order.get(b.department) ?? 99))
+    // A real shop repeats its lines across several runs; a small catalogue is spread over a believable floor.
+    return padProducts(sorted, store.category === 'supermarket' ? 3 : sorted.length < 24 ? 2 : 1)
+  }, [catalog.products, depts, store.category])
   const plan = useMemo(() => planStore(walkProducts), [walkProducts])
   const [nearDept, setNearDept] = useState<string | null>(null)
 

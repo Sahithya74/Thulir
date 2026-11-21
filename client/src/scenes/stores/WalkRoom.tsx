@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { DoubleSide, MathUtils, MeshStandardMaterial, RepeatWrapping, type Group, type Mesh } from 'three'
+import { Color, DoubleSide, InstancedMesh, MathUtils, MeshStandardMaterial, Object3D, RepeatWrapping, SphereGeometry, type Group, type Mesh } from 'three'
 import { DEPARTMENT_LABEL, type Localised } from '@thulir/shared'
 import { BOX, CYL, PLANE, mat } from '@/scenes/neighbourhood/shared3d'
 import { floorTexture, signTexture } from './packTexture'
@@ -74,6 +74,110 @@ export function WalkRoom({ plan, theme, storeName, reducedMotion }: { plan: Walk
         <Checkout key={i} x={c.x} z={c.z} theme={theme} index={i} reducedMotion={reducedMotion} />
       ))}
       <Trolleys x={plan.door.w / 2 + 3.2} z={D - 2.2} theme={theme} />
+      <BasketStack x={-plan.door.w / 2 - 3} z={D - 1.6} />
+      {plan.fixtures.map((f, i) => (
+        <ProduceIsland key={i} x={f.x} z={f.z} w={f.w} d={f.d} theme={theme} seed={i + 1} />
+      ))}
+      <Ducting W={W} D={D} />
+    </group>
+  )
+}
+
+const HEAP = new SphereGeometry(1, 10, 8)
+const PRODUCE_SETS = [
+  ['#d9402e', '#c4322a', '#e4573a'],
+  ['#f08a24', '#e87a1c', '#f5a23c'],
+  ['#5a9a2e', '#4a8a28', '#6aa83a'],
+  ['#f1cf3b', '#e6bf2a', '#f6dd5a'],
+  ['#8a2a46', '#7a2240', '#a03a58'],
+  ['#e8b13a', '#d89a2c', '#f0c350'],
+]
+
+/** A heap of loose fruit or vegetables, as one instanced mesh. */
+function Heap({ colors, seed, x, y, z }: { colors: string[]; seed: number; x: number; y: number; z: number }) {
+  const ref = useRef<InstancedMesh>(null)
+  const N = 34
+  useLayoutEffect(() => {
+    const m = ref.current
+    if (!m) return
+    const o = new Object3D()
+    const c = new Color()
+    let r = seed * 9301 + 49297
+    const rnd = () => {
+      r = (r * 9301 + 49297) % 233280
+      return r / 233280
+    }
+    for (let i = 0; i < N; i++) {
+      const a = rnd() * Math.PI * 2
+      const rad = Math.sqrt(rnd()) * 0.72
+      const hgt = (1 - rad / 0.8) * 0.34
+      const s = 0.2 + rnd() * 0.07
+      o.position.set(Math.cos(a) * rad * 1.15, hgt + rnd() * 0.05, Math.sin(a) * rad * 1.0)
+      o.scale.set(s, s * (0.85 + rnd() * 0.2), s)
+      o.updateMatrix()
+      m.setMatrixAt(i, o.matrix)
+      m.setColorAt(i, c.set(colors[Math.floor(rnd() * colors.length)]))
+    }
+    m.instanceMatrix.needsUpdate = true
+    if (m.instanceColor) m.instanceColor.needsUpdate = true
+  }, [colors, seed])
+  return (
+    <instancedMesh ref={ref} args={[HEAP, undefined as never, N]} position={[x, y, z]} raycast={() => null}>
+      <meshStandardMaterial roughness={0.55} />
+    </instancedMesh>
+  )
+}
+
+/** An open produce table: wooden crates of fruit and vegetables under a hanging sign. */
+function ProduceIsland({ x, z, w, d, theme, seed }: { x: number; z: number; w: number; d: number; theme: StoreTheme; seed: number }) {
+  const sign = useMemo(() => signTexture({ en: 'Fresh produce', ta: 'புதிய காய்கறி, பழங்கள்' }, theme.accent, '#ffffff'), [theme.accent])
+  const signMat = useMemo(() => new MeshStandardMaterial({ map: sign, emissive: '#ffffff', emissiveMap: sign, emissiveIntensity: 0.4, roughness: 0.6 }), [sign])
+  useEffect(() => () => signMat.dispose(), [signMat])
+  const crates = [-1, 0, 1]
+  return (
+    <group position={[x, 0, z]}>
+      <mesh geometry={BOX} material={mat('#8a5a3c', { roughness: 0.8 })} position={[0, 0.55, 0]} scale={[w, 1.1, d]} />
+      <mesh geometry={BOX} material={mat('#5a3a22')} position={[0, 0.08, 0]} scale={[w + 0.2, 0.16, d + 0.2]} />
+      {crates.map((c, i) => (
+        <group key={c} position={[c * (w / 3), 1.1, 0]}>
+          <mesh geometry={BOX} material={mat('#c99a5c', { roughness: 0.85 })} position={[0, 0.2, 0]} scale={[w / 3 - 0.25, 0.4, d - 0.35]} />
+          <Heap colors={PRODUCE_SETS[(seed * 2 + i) % PRODUCE_SETS.length]} seed={seed * 10 + i} x={0} y={0.4} z={0} />
+        </group>
+      ))}
+      {[-1, 1].map((s) => (
+        <mesh key={s} geometry={CYL} material={mat('#3a2a20')} position={[(s * w) / 2.2, 3.6, 0]} scale={[0.07, 5.2, 0.07]} />
+      ))}
+      <mesh geometry={PLANE} material={signMat} position={[0, 5.4, 0]} scale={[Math.min(w * 0.95, 5.6), 1.4, 1]} />
+      <mesh geometry={PLANE} material={signMat} position={[0, 5.4, 0.01]} rotation={[0, Math.PI, 0]} scale={[Math.min(w * 0.95, 5.6), 1.4, 1]} />
+    </group>
+  )
+}
+
+/** Hand baskets stacked by the door. */
+function BasketStack({ x, z }: { x: number; z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      <mesh geometry={BOX} material={mat('#3a2a20')} position={[0, 0.5, 0]} scale={[1.5, 1, 1.1]} />
+      {[0, 1, 2, 3].map((i) => (
+        <mesh key={i} geometry={BOX} material={mat(i % 2 ? '#d94f2b' : '#c4402a', { roughness: 0.6 })} position={[0, 1.15 + i * 0.28, 0]} scale={[1.3, 0.3, 0.95]} />
+      ))}
+    </group>
+  )
+}
+
+/** Air-conditioning ducts and cable trays under the ceiling: the clutter that makes a roof read as a roof. */
+function Ducting({ W, D }: { W: number; D: number }) {
+  return (
+    <group>
+      {[0.28, 0.62].map((t) => (
+        <group key={t} position={[0, WALL_H - 0.9, D * t]}>
+          <mesh geometry={BOX} material={mat('#c5ced8', { metalness: 0.5, roughness: 0.45 })} scale={[W - 1, 0.7, 0.9]} />
+          {Array.from({ length: Math.round(W / 6) }, (_, i) => (
+            <mesh key={i} geometry={BOX} material={mat('#9aa6b4', { metalness: 0.5, roughness: 0.4 })} position={[(i - (Math.round(W / 6) - 1) / 2) * 6, 0, 0]} scale={[0.14, 0.78, 1]} />
+          ))}
+        </group>
+      ))}
+      <mesh geometry={BOX} material={mat('#8a96a4', { metalness: 0.6, roughness: 0.4 })} position={[0, WALL_H - 0.4, D * 0.45]} scale={[W - 1, 0.12, 0.7]} />
     </group>
   )
 }

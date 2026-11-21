@@ -77,7 +77,7 @@ export default function OwnerProduct() {
             {p.imageUrl ? (
               <img src={p.imageUrl} alt={p.name.en} className="h-full w-full object-contain" />
             ) : (
-              <ProductArt shape={p.shape} color={p.color} brand={p.brand} label={p.name.en} className="h-[80%] w-auto" />
+              <ProductArt product={p} label={p.name.en} className="h-[80%] w-auto" />
             )}
           </div>
           <label className="mt-2 block text-[0.9rem]">

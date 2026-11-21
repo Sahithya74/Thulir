@@ -71,14 +71,14 @@ start-up through the real order flow, so the portals are not empty.
   a few townspeople) stay one tab away.
 - **Location + delivery:** detect / search / manual address / saved addresses, server-checked pincodes, per-store
   distance, ETA and "delivers to you" computed from the chosen place.
-- **Store interiors + catalog:** a walk-in 3D store — enter through sliding doors and move freely (W A S D / arrows,
-  drag to look, tap the floor or the minimap to walk, on-screen d-pad on phones) between several aisles with department
-  signs, double-sided gondolas, wall runs, produce tables, ducting, baskets, trolleys and checkouts. Shoppers stroll
-  the aisles — people with faces, hair, skin tones and everyday clothes (saree, kurta, veshti, shirt). Tapping a
-  product (or a search result, or a department tab) walks you to it. Packs are drawn to look like the real product — a
-  salt pack shows a window of salt crystals, rice shows grains. The list view is a bento grid with spatial cards that
-  tilt toward the pointer. Six themes.
-  100 demo products, in-store and cross-store search (English, Tamil and Latin transliteration), filters, sorting,
+- **Store interiors + catalog:** a walk-in 3D store laid out like a real one — tall four-row shelving down both side
+  walls and across the back, a wide open middle to move about in (W A S D / arrows, drag to look, tap the floor or the
+  minimap, on-screen move pad), glass-fronted chiller bays, stacks of rice sacks, cartons and produce crates against
+  the walls, department signs, swaying promo banners, ducting and checkouts. There are no people in the shops. Tapping
+  a product (or a search result, or a department tab) walks you to it. Packs are drawn to look like the real product —
+  a salt pack shows a window of salt crystals, rice shows grains — with soft studio reflections on the plastic. The
+  list view is a bento grid with spatial cards that tilt toward the pointer. Six themes.
+  About 190 demo products, in-store and cross-store search (English, Tamil and Latin transliteration), filters, sorting,
   substitutions, and eight optional "What are we shopping for today?" missions.
 - **Freshness engine (the foundation):** expiry lives on **batches**. Expired, expires-today and unreadable-date stock is
   blocked; near-expiry is configurable per department (platform), per store and per product; stock is drawn

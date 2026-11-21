@@ -62,20 +62,22 @@ start-up through the real order flow, so the portals are not empty.
 
 ## What is real
 
-- **Design + entry:** bright ink / teal / coral palette, Fraunces / Inter / Noto Sans Tamil (bundled, no CDN), GSAP entry sequence,
-  reduced-motion aware, EN / தமிழ் switcher, ₹ formatting.
-- **3D mid-city district:** procedural geometry (no model files), instanced blocks and vehicles, six distinct store
-  buildings, GSAP camera fly-ins, drag / wheel / pinch / arrow-key control, focusable store pins. Every shop has its
-  own colour, an illuminated name board and a glowing beacon so it can be spotted from afar; the street is alive with
-  pedestrians, traffic, drifting clouds and birds. List and schematic map views are always available; low-power
-  devices default to the list.
+- **Design + entry:** a warm market palette (cocoa ink, turmeric, saffron, terracotta, leaf green), Fraunces / Inter /
+  Noto Sans Tamil (bundled, no CDN), a scroll-driven landing page (floating packs, marquee, bento steps), GSAP and
+  ScrollTrigger motion, reduced-motion aware, EN / தமிழ் switcher, ₹ formatting.
+- **Choosing a shop:** a 3D arc carousel — swipe, drag, scroll the wheel or use the arrow keys to turn through the shops;
+  every card shows what is inside (its packs sit at different depths), whether it is open, the ETA, the rating and the
+  offer. List, map and a 3D mid-city district (procedural geometry, colour-coded shops with name boards and beacons,
+  a few townspeople) stay one tab away.
 - **Location + delivery:** detect / search / manual address / saved addresses, server-checked pincodes, per-store
   distance, ETA and "delivers to you" computed from the chosen place.
 - **Store interiors + catalog:** a walk-in 3D store — enter through sliding doors and move freely (W A S D / arrows,
-  drag to look, tap the floor or the minimap to walk, on-screen d-pad on phones) between aisles with department signs,
-  double-sided gondolas, wall runs, checkouts and shoppers. Tapping a product (or a search result, or a department tab)
-  walks you to it. Packs are drawn to look like the real product — a salt pack shows a window of salt crystals, rice
-  shows grains, dal shows lentils. Six themes, plus a list/grid view.
+  drag to look, tap the floor or the minimap to walk, on-screen d-pad on phones) between several aisles with department
+  signs, double-sided gondolas, wall runs, produce tables, ducting, baskets, trolleys and checkouts. Shoppers stroll
+  the aisles — people with faces, hair, skin tones and everyday clothes (saree, kurta, veshti, shirt). Tapping a
+  product (or a search result, or a department tab) walks you to it. Packs are drawn to look like the real product — a
+  salt pack shows a window of salt crystals, rice shows grains. The list view is a bento grid with spatial cards that
+  tilt toward the pointer. Six themes.
   100 demo products, in-store and cross-store search (English, Tamil and Latin transliteration), filters, sorting,
   substitutions, and eight optional "What are we shopping for today?" missions.
 - **Freshness engine (the foundation):** expiry lives on **batches**. Expired, expires-today and unreadable-date stock is

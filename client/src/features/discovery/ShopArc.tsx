@@ -242,11 +242,12 @@ export function ShopArc({ stores }: Props) {
     render()
   }, [n, render, stores])
 
-  // Keep the shared selection in step with the centre card.
+  // Keep the shared selection in step with the centre card, and let go of it when leaving the arc.
   useEffect(() => {
     const s = stores[active]
     if (s) select(s.id)
   }, [active, stores, select])
+  useEffect(() => () => select(null), [select])
 
   // Wheel / trackpad: continuous scrub, then settle on the nearest card.
   useEffect(() => {
@@ -359,7 +360,7 @@ export function ShopArc({ stores }: Props) {
 
       <div className="flex shrink-0 flex-col items-center gap-3 px-4 pb-5 pt-3">
         <div className="flex items-center gap-4">
-          <button type="button" onClick={() => go(active - 1, true)} disabled={active === 0} aria-label="Previous shop" className="tap grid h-11 w-11 place-items-center rounded-full border border-forest/25 text-lg transition hover:bg-forest hover:text-cream disabled:opacity-30">
+          <button type="button" onClick={() => go(active - 1, true)} disabled={active === 0} aria-label={t('arcPrev')} className="tap grid h-11 w-11 place-items-center rounded-full border border-forest/25 text-lg transition hover:bg-forest hover:text-cream disabled:opacity-30">
             ←
           </button>
           <div className="flex items-center gap-1.5" aria-hidden>
@@ -367,7 +368,7 @@ export function ShopArc({ stores }: Props) {
               <button key={s.id} type="button" tabIndex={-1} onClick={() => go(i)} className={`h-2 rounded-full transition-all ${i === active ? 'w-7 bg-terracotta' : 'w-2 bg-forest/25 hover:bg-forest/50'}`} />
             ))}
           </div>
-          <button type="button" onClick={() => go(active + 1, true)} disabled={active >= n - 1} aria-label="Next shop" className="tap grid h-11 w-11 place-items-center rounded-full border border-forest/25 text-lg transition hover:bg-forest hover:text-cream disabled:opacity-30">
+          <button type="button" onClick={() => go(active + 1, true)} disabled={active >= n - 1} aria-label={t('arcNext')} className="tap grid h-11 w-11 place-items-center rounded-full border border-forest/25 text-lg transition hover:bg-forest hover:text-cream disabled:opacity-30">
             →
           </button>
         </div>

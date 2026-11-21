@@ -25,7 +25,7 @@ export function StorePin({ store, hovered, selected, dimmed, compact = false, on
       {showCard && (
         <div
           role="presentation"
-          className="mb-2 w-60 border bg-cream px-3.5 py-3 text-left shadow-[0_10px_30px_-12px_rgba(43, 26, 18,0.45)]"
+          className="mb-2 w-60 border bg-cream px-3.5 py-3 text-left shadow-[0_10px_30px_-12px_rgba(43,26,18,0.45)]"
           style={{ borderColor: 'rgb(43 26 18 / 0.16)', pointerEvents: 'none' }}
         >
           <div className="eyebrow">{t(categoryKey[store.category])}</div>

@@ -43,7 +43,7 @@ export function ProductPanel({ productId, onSelectLocal, currentStoreId, onClose
   const { state, retry } = useAsync((signal) => catalogApi.product(productId, signal), [productId])
 
   return (
-    <section data-product-panel aria-label={t('productInfo')} className="flex h-full min-h-0 flex-col border border-line bg-cream shadow-[0_24px_60px_-28px_rgba(43, 26, 18,0.5)]">
+    <section data-product-panel aria-label={t('productInfo')} className="flex h-full min-h-0 flex-col overflow-hidden rounded-t-[1.75rem] border border-line bg-cream lg:rounded-[1.75rem] shadow-[0_24px_60px_-28px_rgba(43,26,18,0.5)]">
       <div className="flex shrink-0 items-center justify-between border-b border-line px-4 py-2.5">
         <span className="eyebrow">{t('productInfo')}</span>
         <button type="button" onClick={onClose} aria-label={t('closeDetails')} className="tap -mr-2 px-2 text-xl text-forest/70 hover:text-forest">
@@ -72,9 +72,9 @@ export function ProductPanel({ productId, onSelectLocal, currentStoreId, onClose
           const sold = !p.eligibility.sellable
           return (
             <>
-              <div className="relative mt-4 grid aspect-[5/3] place-items-center bg-white">
-                <ProductImage product={p} labelled className="h-[82%] w-auto max-w-[90%]" />
-                {p.discountPercent > 0 && !sold && <span className="absolute left-0 top-3 bg-terracotta px-2.5 py-1 text-[0.75rem] font-semibold text-white">{t('savePct', { pct: p.discountPercent })}</span>}
+              <div className="relative mt-4 grid aspect-[5/3] place-items-center rounded-3xl bg-[radial-gradient(circle_at_50%_40%,#fff_0%,#f6e3bd_100%)]">
+                <ProductImage product={p} labelled size={360} className="arc-bob h-[82%] w-auto max-w-[90%]" />
+                {p.discountPercent > 0 && !sold && <span className="absolute left-3 top-3 rounded-full bg-terracotta px-3 py-1 text-[0.75rem] font-semibold text-white">{t('savePct', { pct: p.discountPercent })}</span>}
               </div>
 
               <div className="mt-4 flex items-center gap-2 text-[0.78rem] text-charcoal/70">

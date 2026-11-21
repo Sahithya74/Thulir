@@ -10,6 +10,7 @@ import { walkCmd } from '@/scenes/stores/walkBus'
 import { pick, useLang, useT } from '@/services/i18n'
 import type { DataSource } from '@/services/catalogApi'
 import { DEFAULT_FILTER, PRICE_STEPS_PAISE, applyProductFilter, brandsOf, type ProductFilter, type SortKey } from './productFilter'
+import { BentoGrid } from './BentoGrid'
 import { ProductPanel } from './ProductPanel'
 import { DPad, MiniMap } from './WalkOverlay'
 
@@ -30,7 +31,7 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
       type="button"
       aria-pressed={on}
       onClick={onClick}
-      className={`min-h-10 whitespace-nowrap border px-3 text-[0.78rem] transition-colors lg:min-h-9 ${on ? 'border-forest bg-forest text-cream' : 'border-forest/25 text-forest hover:border-forest/60'}`}
+      className={`min-h-10 shrink-0 whitespace-nowrap rounded-full border px-3.5 text-[0.78rem] transition-colors lg:min-h-9 ${on ? 'border-forest bg-forest text-cream' : 'border-forest/25 bg-white/60 text-forest hover:border-forest/60'}`}
     >
       {children}
     </button>
@@ -39,7 +40,7 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
 
 function Select({ label, value, onChange, children }: { label: string; value: string; onChange: (v: string) => void; children: React.ReactNode }) {
   return (
-    <label className="flex min-h-10 items-center gap-2 border border-forest/25 bg-white px-2 text-[0.78rem] lg:min-h-9">
+    <label className="flex min-h-10 items-center gap-2 rounded-full border border-forest/25 bg-white/80 px-3 text-[0.78rem] lg:min-h-9">
       <span className="text-charcoal/60">{label}</span>
       <select value={value} onChange={(e) => onChange(e.target.value)} className="bg-transparent py-1 text-forest outline-none">
         {children}
@@ -115,17 +116,17 @@ export function StoreShop({ store, catalog, source }: Props) {
     <div className={`grid gap-5 ${selectedId ? 'lg:grid-cols-[minmax(0,1fr)_370px]' : ''}`}>
       <div className="min-w-0">
         {/* departments */}
-        <div role="tablist" aria-label={t('department')} className="flex gap-1 overflow-x-auto border-b border-line pb-px">
+        <div role="tablist" aria-label={t('department')} className="flex gap-1.5 overflow-x-auto pb-1">
           {!shelfMode && (
-            <button type="button" role="tab" aria-selected={filter.department === 'all'} onClick={() => set('department', 'all')} className={`tap shrink-0 whitespace-nowrap border-b-2 px-3 text-[0.85rem] font-medium ${filter.department === 'all' ? 'border-terracotta text-forest' : 'border-transparent text-charcoal/65 hover:text-forest'}`}>
-              {t('all')} <span className="text-charcoal/50">{catalog.products.length}</span>
+            <button type="button" role="tab" aria-selected={filter.department === 'all'} onClick={() => set('department', 'all')} className={`tap shrink-0 whitespace-nowrap rounded-full px-4 text-[0.85rem] font-medium ${filter.department === 'all' ? 'bg-forest text-cream' : 'bg-white/60 text-charcoal/75 hover:bg-forest/10'}`}>
+              {t('all')} <span className="opacity-60">{catalog.products.length}</span>
             </button>
           )}
           {depts.map((d) => {
             const active = shelfMode ? nearDept === d.id : filter.department === d.id
             return (
-              <button key={d.id} type="button" role="tab" aria-selected={active} title={shelfMode ? t('walkToDept', { dept: pick(DEPARTMENT_LABEL[d.id], lang) }) : undefined} onClick={() => (shelfMode ? walkCmd.emit({ type: 'dept', dept: d.id }) : set('department', d.id))} className={`tap shrink-0 whitespace-nowrap border-b-2 px-3 text-[0.85rem] font-medium uppercase tracking-wide ${active ? 'border-terracotta text-forest' : 'border-transparent text-charcoal/65 hover:text-forest'}`}>
-                {pick(DEPARTMENT_LABEL[d.id], lang)} <span className="text-charcoal/50">{d.count}</span>
+              <button key={d.id} type="button" role="tab" aria-selected={active} title={shelfMode ? t('walkToDept', { dept: pick(DEPARTMENT_LABEL[d.id], lang) }) : undefined} onClick={() => (shelfMode ? walkCmd.emit({ type: 'dept', dept: d.id }) : set('department', d.id))} className={`tap shrink-0 whitespace-nowrap rounded-full px-4 text-[0.85rem] font-medium uppercase tracking-wide ${active ? 'bg-forest text-cream' : 'bg-white/60 text-charcoal/75 hover:bg-forest/10'}`}>
+                {pick(DEPARTMENT_LABEL[d.id], lang)} <span className="opacity-60">{d.count}</span>
               </button>
             )
           })}
@@ -134,7 +135,7 @@ export function StoreShop({ store, catalog, source }: Props) {
         {/* toolbar */}
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <label className="sr-only" htmlFor="store-product-search">{t('searchInStore')}</label>
-          <div className="flex min-h-10 min-w-[12rem] flex-1 items-center gap-2 border border-forest/30 bg-white px-3 focus-within:border-forest lg:min-h-9">
+          <div className="flex min-h-10 min-w-[12rem] flex-1 items-center gap-2 rounded-full border border-forest/30 bg-white/80 px-4 focus-within:border-forest lg:min-h-9">
             <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0 text-forest/60">
               <circle cx="7" cy="7" r="4.7" stroke="currentColor" strokeWidth="1.4" />
               <path d="m10.5 10.5 3.5 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
@@ -155,8 +156,8 @@ export function StoreShop({ store, catalog, source }: Props) {
           <Toggle on={filter.onOffer} onClick={() => set('onOffer', !filter.onOffer)}>{t('onOffer')}</Toggle>
           <Toggle on={filter.vegOnly} onClick={() => set('vegOnly', !filter.vegOnly)}>{t('vegOnly')}</Toggle>
           <div role="group" aria-label="View" className="ml-auto flex">
-            <button type="button" aria-pressed={shelfMode} disabled={!webgl} onClick={() => setView('shelf')} className={`min-h-10 border px-3 text-[0.78rem] disabled:opacity-40 lg:min-h-9 ${shelfMode ? 'border-forest bg-forest text-cream' : 'border-forest/25 text-forest'}`}>{t('viewWalk')}</button>
-            <button type="button" aria-pressed={!shelfMode} onClick={() => setView('grid')} className={`min-h-10 border border-l-0 px-3 text-[0.78rem] lg:min-h-9 ${!shelfMode ? 'border-forest bg-forest text-cream' : 'border-forest/25 text-forest'}`}>{t('viewGrid')}</button>
+            <button type="button" aria-pressed={shelfMode} disabled={!webgl} onClick={() => setView('shelf')} className={`min-h-10 rounded-l-full border px-4 text-[0.78rem] disabled:opacity-40 lg:min-h-9 ${shelfMode ? 'border-forest bg-forest text-cream' : 'border-forest/25 text-forest'}`}>{t('viewWalk')}</button>
+            <button type="button" aria-pressed={!shelfMode} onClick={() => setView('grid')} className={`min-h-10 rounded-r-full border border-l-0 px-4 text-[0.78rem] lg:min-h-9 ${!shelfMode ? 'border-forest bg-forest text-cream' : 'border-forest/25 text-forest'}`}>{t('viewGrid')}</button>
           </div>
         </div>
 
@@ -167,7 +168,7 @@ export function StoreShop({ store, catalog, source }: Props) {
         {/* stage */}
         {shelfMode ? (
           <>
-            <div className="relative mt-2 h-[68dvh] min-h-[400px] max-h-[760px] overflow-hidden rounded-lg border border-line shadow-[0_18px_50px_-24px_rgba(43, 26, 18,0.55)]" style={{ background: theme.sky }}>
+            <div className="relative mt-2 h-[68dvh] min-h-[400px] max-h-[760px] overflow-hidden rounded-[1.75rem] border border-line shadow-[0_18px_50px_-24px_rgba(43,26,18,0.55)]" style={{ background: theme.sky }}>
               <Suspense fallback={<div role="status" className="grid h-full place-items-center text-[0.8rem] text-charcoal/65">{t('loading')}…</div>}>
                 <StoreWalk
                   plan={plan}
@@ -190,7 +191,7 @@ export function StoreShop({ store, catalog, source }: Props) {
                 {t('walkEntrance')}
               </button>
               {hovered && (
-                <div className="pointer-events-none absolute bottom-16 left-3 max-w-[16rem] rounded-md border border-line bg-cream px-3 py-2 shadow-[0_10px_30px_-12px_rgba(43, 26, 18,0.45)] sm:bottom-3 sm:left-auto sm:right-[12.5rem]">
+                <div className="pointer-events-none absolute bottom-16 left-3 max-w-[16rem] rounded-md border border-line bg-cream px-3 py-2 shadow-[0_10px_30px_-12px_rgba(43,26,18,0.45)] sm:bottom-3 sm:left-auto sm:right-[12.5rem]">
                   <p className="font-display text-[1rem] leading-tight text-forest">{pick(hovered.name, lang)}</p>
                   <p className="text-[0.72rem] text-charcoal/65">{hovered.brand} · {hovered.unit}</p>
                   <div className="mt-1 flex items-center justify-between gap-3"><Price product={hovered} /><FreshnessChip product={hovered} /></div>
@@ -224,13 +225,15 @@ export function StoreShop({ store, catalog, source }: Props) {
         ) : filtered.length === 0 ? (
           <p className="mt-6 border border-dashed border-forest/25 px-4 py-10 text-center text-[0.9rem] text-charcoal/70">{t('noProducts')}</p>
         ) : (
-          <ul className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
-            {filtered.map((p) => (
-              <li key={p.id}>
-                <ProductCard product={p} selected={selectedId === p.id} hovered={hoveredId === p.id} onSelect={(id) => select(id)} onHover={setHoveredId} />
-              </li>
-            ))}
-          </ul>
+          <BentoGrid
+            products={filtered}
+            departments={depts}
+            sectioned={filter.department === 'all' && !filtering}
+            selectedId={selectedId}
+            hoveredId={hoveredId}
+            onSelect={(id) => select(id)}
+            onHover={setHoveredId}
+          />
         )}
 
         <div className="mt-5 border-t border-line pt-3 text-[0.75rem] leading-relaxed text-charcoal/65">

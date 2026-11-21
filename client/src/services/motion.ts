@@ -24,6 +24,8 @@ export function revealOnScroll(scope: Element | null): void {
   if (!scope || prefersReducedMotion()) return
   const items = gsap.utils.toArray<HTMLElement>('[data-reveal]', scope)
   items.forEach((el) => {
+    if (el.dataset.revealed) return
+    el.dataset.revealed = '1'
     const kind = el.dataset.reveal
     const from: gsap.TweenVars = { opacity: 0, duration: 1, ease: ease.enter }
     if (kind === 'left') from.x = -60

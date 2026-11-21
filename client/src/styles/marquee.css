@@ -30,3 +30,25 @@
 .arc-pack {
   transition: transform 0.25s ease-out;
 }
+
+/* Rotating sticker text and a gentle wobble for stickers */
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin-slow {
+  animation: spin-slow 22s linear infinite;
+}
+@keyframes wobble {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+.wobble {
+  animation: wobble 5s ease-in-out infinite;
+}

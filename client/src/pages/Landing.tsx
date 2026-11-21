@@ -1,10 +1,12 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { LanguageSwitch } from '@/components/navigation/TopBar'
 import { ProductArt } from '@/components/products/ProductArt'
+import { Tilt } from '@/components/ui/Tilt'
+import { SHOWCASE, TONES } from '@/features/discovery/showcase'
 import type { PackSource } from '@/components/products/packDesign'
 import { categoryKey, useT } from '@/services/i18n'
-import { dur, ease, gsap, parallax, revealOnScroll } from '@/services/motion'
+import { dur, ease, gsap, parallax, revealOnScroll, ScrollTrigger } from '@/services/motion'
 import { useUiStore } from '@/store/ui'
 import { useWebGLSupport } from '@/hooks/useDevice'
 
@@ -22,6 +24,62 @@ const HERO_PACKS: { p: PackSource; size: number; cls: string; depth: number; rot
 
 const CATS = ['supermarket', 'provision', 'fruit_veg', 'bakery', 'dairy', 'household'] as const
 const STEP_COLORS = ['bg-sun text-forest', 'bg-terracotta text-cream', 'bg-botanical text-forest', 'bg-forest text-cream']
+
+/** True once the element has come near the viewport: used to paint heavy artwork only when it is about to be seen. */
+function useSeen<T extends Element>() {
+  const ref = useRef<T>(null)
+  const [seen, setSeen] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || seen) return
+    const io = new IntersectionObserver(
+      (es) => {
+        if (es.some((e) => e.isIntersecting)) {
+          setSeen(true)
+          io.disconnect()
+        }
+      },
+      { rootMargin: '200px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [seen])
+  return [ref, seen] as const
+}
+
+function ShelfCard({ c, i }: { c: (typeof CATS)[number]; i: number }) {
+  const t = useT()
+  const [ref, seen] = useSeen<HTMLDivElement>()
+  const [ready, setReady] = useState(false)
+  // Painting a pack is real canvas work: spread the cards out so scrolling stays smooth.
+  useEffect(() => {
+    if (!seen) return
+    const id = window.setTimeout(() => setReady(true), (i % 3) * 450)
+    return () => window.clearTimeout(id)
+  }, [seen, i])
+  const [from, to] = TONES[c]
+  return (
+    <div ref={ref} data-reveal={i % 2 ? 'right' : 'left'} className={i % 3 === 1 ? 'lg:translate-y-10' : ''}>
+      <Tilt className="relative h-72 rounded-[2rem] text-cream shadow-[0_30px_50px_-28px_rgba(43,26,18,0.6)]" style={{ background: `linear-gradient(155deg, ${from}, ${to})` }} max={8}>
+        <span aria-hidden className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10" />
+        <div className="relative p-6 [transform:translateZ(30px)]">
+          <p className="eyebrow !text-cream/70">0{i + 1}</p>
+          <h3 className="mt-1 font-display text-[1.9rem] leading-tight">{t(categoryKey[c])}</h3>
+        </div>
+        <div className="absolute inset-x-0 bottom-0 flex h-40 items-end justify-center gap-1 [transform-style:preserve-3d]">
+          {ready &&
+            SHOWCASE[c].map((p, k) => (
+              <div key={p.id} className="[transform-style:preserve-3d]" style={{ transform: `translate3d(calc(var(--px, 0) * ${(k + 1) * 10}px), calc(var(--py, 0) * ${(k + 1) * 5}px), ${40 + k * 26}px) rotate(${(k - 1) * 7}deg)` }}>
+                <div style={{ width: k === 1 ? 150 : 120 }} className="[&>img]:h-auto [&>img]:w-full">
+                  <ProductArt product={p} size={160} />
+                </div>
+              </div>
+            ))}
+        </div>
+      </Tilt>
+    </div>
+  )
+}
 
 function Marquee({ items, reverse }: { items: string[]; reverse?: boolean }) {
   const row = [...items, ...items]
@@ -67,6 +125,8 @@ export default function Landing() {
       gsap.to('.blob', { x: dur(40), y: dur(-30), scale: 1.12, duration: 7, repeat: -1, yoyo: true, ease: 'sine.inOut', stagger: 1.4 })
       revealOnScroll(root.current)
       parallax(root.current)
+      gsap.to('.scroll-bar', { scaleX: 1, ease: 'none', scrollTrigger: { trigger: root.current, start: 'top top', end: 'bottom bottom', scrub: 0.3 } })
+      void ScrollTrigger
     }, root)
     return () => ctx.revert()
   }, [])
@@ -100,7 +160,8 @@ export default function Landing() {
   const cats = CATS.map((c) => t(categoryKey[c]))
 
   return (
-    <div ref={root} className="relative overflow-x-clip bg-cream text-forest">
+    <div ref={root} className="relative overflow-x-clip text-forest">
+      <div aria-hidden className="scroll-bar fixed inset-x-0 top-0 z-50 h-1 origin-left scale-x-0 bg-terracotta" />
       {/* Hero */}
       <header ref={hero} onPointerMove={onMove} className="relative min-h-dvh overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute inset-0">
@@ -117,6 +178,17 @@ export default function Landing() {
           </div>
         </div>
 
+        <div aria-hidden className="absolute bottom-10 left-[44%] z-20 hidden h-32 w-32 lg:block wobble">
+          <svg viewBox="0 0 120 120" className="spin-slow absolute inset-0 text-forest">
+            <defs>
+              <path id="circ" d="M60 60 m-44 0 a44 44 0 1 1 88 0 a44 44 0 1 1 -88 0" />
+            </defs>
+            <text fontSize="9.5" fontWeight="600" fill="currentColor">
+              <textPath href="#circ" textLength="270" lengthAdjust="spacing">{t('badgeText')}</textPath>
+            </text>
+          </svg>
+          <div className="absolute inset-[22%] grid place-items-center rounded-full bg-sun font-display text-xl text-forest shadow-lg">துளிர்</div>
+        </div>
         <div className="pointer-events-none absolute right-[3%] top-[14%] hidden h-[72%] w-[46%] lg:block" aria-hidden>
           {HERO_PACKS.map(({ p, size, cls, depth, rot }) => (
             <div key={p.id} className={`hero-pack absolute ${cls}`} data-depth={depth}>
@@ -134,7 +206,12 @@ export default function Landing() {
               <span className="hero-word block">{t('heroLine1')}</span>
             </span>
             <span className="block overflow-hidden">
-              <span className="hero-word block italic text-terracotta">{t('heroLine2')}</span>
+              <span className="hero-word relative block italic text-terracotta">
+                {t('heroLine2')}
+                <svg aria-hidden viewBox="0 0 400 16" preserveAspectRatio="none" className="absolute -bottom-1 left-0 h-3 w-full text-sun">
+                  <path d="M2 10 C 60 2, 110 14, 170 7 S 290 3, 398 9" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
+                </svg>
+              </span>
             </span>
           </h1>
           <p className="hero-fade mt-6 max-w-xl text-[1.05rem] leading-relaxed text-charcoal/80">{t('heroBody')}</p>
@@ -161,6 +238,23 @@ export default function Landing() {
           <div className="text-forest/70">
             <Marquee items={cats.slice().reverse()} reverse />
           </div>
+        </div>
+      </section>
+
+      {/* On the shelves */}
+      <section className="mx-auto max-w-6xl px-5 pt-24 sm:px-10">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <h2 data-reveal className="max-w-xl font-display text-[clamp(2.2rem,5.5vw,4.5rem)] leading-[1.02]">
+            {t('shelvesTitle')}
+          </h2>
+          <p data-reveal data-delay="0.1" className="max-w-sm text-[1rem] leading-relaxed text-charcoal/75">
+            {t('shelvesBody')}
+          </p>
+        </div>
+        <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {CATS.map((c, i) => (
+            <ShelfCard key={c} c={c} i={i} />
+          ))}
         </div>
       </section>
 

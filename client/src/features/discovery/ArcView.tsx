@@ -1,7 +1,7 @@
 import { forwardRef } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import type { StoreWithDelivery } from '@thulir/shared'
-import { categoryKey, useT } from '@/services/i18n'
+import { categoryKey, pick, useLang, useT } from '@/services/i18n'
 import { useDiscovery } from '@/store/discovery'
 import { useStores } from '@/store/stores'
 import { CATEGORIES, Chip, FLAGS } from './DiscoveryPanel'
@@ -15,6 +15,7 @@ interface Props {
 /** The default way to choose a shop: filters on top, then the arc of shops you swipe or scroll through. */
 export const ArcView = forwardRef<HTMLInputElement, Props>(function ArcView({ stores, tabs }, searchRef) {
   const t = useT()
+  const lang = useLang()
   const d = useDiscovery(
     useShallow((s) => ({
       query: s.query,
@@ -30,11 +31,24 @@ export const ArcView = forwardRef<HTMLInputElement, Props>(function ArcView({ st
     })),
   )
   const allStores = useStores((s) => s.stores)
+  const offers = allStores.flatMap((st) => st.offers.map((o) => `${pick(st.name, lang)} — ${pick(o.label, lang)}`))
   const anyFilter = d.query || d.categories.length || d.openNow || d.fast || d.offers || d.nearby
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-[radial-gradient(70%_60%_at_50%_0%,#ffe7b0_0%,transparent_70%),radial-gradient(50%_50%_at_90%_80%,rgba(217,79,43,0.14)_0%,transparent_70%),radial-gradient(45%_45%_at_5%_90%,rgba(169,207,138,0.35)_0%,transparent_70%)]">
       {tabs}
+      {offers.length > 0 && (
+        <div className="shrink-0 overflow-hidden border-b border-forest/10 bg-forest py-1.5 text-cream" aria-label={t('offersLive')}>
+          <div className="marquee flex w-max gap-10 whitespace-nowrap text-[0.78rem]" aria-hidden>
+            {[...offers, ...offers].map((o, i) => (
+              <span key={i} className="flex items-center gap-10">
+                {o}
+                <span className="inline-block h-1.5 w-1.5 rotate-45 bg-sun" />
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="mx-auto w-full max-w-5xl shrink-0 px-4 pt-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <label className="sr-only" htmlFor="arc-search">

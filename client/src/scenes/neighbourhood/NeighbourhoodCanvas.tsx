@@ -11,8 +11,7 @@ import { District } from './District'
 import { Lighting, type LightMode } from './Lighting'
 import { PinProjector } from './PinProjector'
 import { StoreBuilding } from './StoreBuilding'
-import { Vehicles } from './Ambient'
-import { Birds, Clouds, Pedestrians } from './Life'
+import { Townspeople } from './Townspeople'
 import { plots } from './layout'
 
 interface Props {
@@ -46,10 +45,7 @@ function Scene({ visibleIds, reducedMotion, tier }: Props) {
       <PinProjector />
       <District shadows={shadows} />
       <CityBlocks low={low} shadows={shadows} />
-      <Vehicles count={low ? 5 : 12} reducedMotion={reducedMotion} />
-      <Pedestrians count={low ? 14 : 34} reducedMotion={reducedMotion} />
-      <Clouds reducedMotion={reducedMotion} />
-      {!low && <Birds count={7} reducedMotion={reducedMotion} />}
+      <Townspeople count={low ? 5 : 10} reducedMotion={reducedMotion} />
       {plots.map((plot) => {
         const store = stores.find((s) => s.id === plot.storeId)
         if (!store) return null

@@ -77,8 +77,8 @@ export default function OwnerProductNew() {
         <Field label="Description (optional)"><textarea className={`${inputClass} py-2`} rows={2} value={f.description} onChange={(e) => set('description', e.target.value)} maxLength={300} /></Field>
         <fieldset className="flex flex-wrap gap-6">
           <legend className="sr-only">Product type</legend>
-          <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={f.veg} onChange={(e) => set('veg', e.target.checked)} className="h-5 w-5 accent-[#202522]" /> Vegetarian</label>
-          <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={f.requiresExpiry} onChange={(e) => set('requiresExpiry', e.target.checked)} className="h-5 w-5 accent-[#202522]" /> Has an expiry date</label>
+          <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={f.veg} onChange={(e) => set('veg', e.target.checked)} className="h-5 w-5 accent-[#0f2a43]" /> Vegetarian</label>
+          <label className="flex min-h-11 items-center gap-2"><input type="checkbox" checked={f.requiresExpiry} onChange={(e) => set('requiresExpiry', e.target.checked)} className="h-5 w-5 accent-[#0f2a43]" /> Has an expiry date</label>
         </fieldset>
         {!f.requiresExpiry && <p className="text-[0.88rem] text-charcoal/70">Only for goods that never expire (scrub pads, brooms). This cannot be changed later except by the platform.</p>}
 

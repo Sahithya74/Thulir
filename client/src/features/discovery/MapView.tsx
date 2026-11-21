@@ -42,11 +42,11 @@ export function MapView({ stores, visibleIds }: { stores: StoreWithDelivery[]; v
     <div className="relative h-full w-full bg-limestone [container-type:size]">
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ width: 'min(100cqw, 100cqh)', height: 'min(100cqw, 100cqh)' }}>
         <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" aria-hidden>
-          <line x1="50" y1="0" x2="50" y2="100" stroke="rgb(32 37 34 / 0.12)" strokeWidth="0.2" />
-          <line x1="0" y1="50" x2="100" y2="50" stroke="rgb(32 37 34 / 0.12)" strokeWidth="0.2" />
+          <line x1="50" y1="0" x2="50" y2="100" stroke="rgb(15 42 67 / 0.12)" strokeWidth="0.2" />
+          <line x1="0" y1="50" x2="100" y2="50" stroke="rgb(15 42 67 / 0.12)" strokeWidth="0.2" />
           {rings.map((r) => (
             <g key={r}>
-              <circle cx="50" cy="50" r={(r / extent) * 50} fill="none" stroke="rgb(32 37 34 / 0.2)" strokeWidth="0.25" strokeDasharray="0.8 1.2" />
+              <circle cx="50" cy="50" r={(r / extent) * 50} fill="none" stroke="rgb(15 42 67 / 0.2)" strokeWidth="0.25" strokeDasharray="0.8 1.2" />
               <text x="50.6" y={50 - (r / extent) * 50 - 0.7} fontSize="1.9" fill="rgb(41 44 41 / 0.55)">
                 {r >= 1000 ? `${r / 1000} km` : `${r} m`}
               </text>
@@ -58,7 +58,7 @@ export function MapView({ stores, visibleIds }: { stores: StoreWithDelivery[]; v
               cy={100 - pct(selected.north)}
               r={(selected.store.deliveryRadiusM / extent) * 50}
               fill="rgb(119 133 107 / 0.10)"
-              stroke="#77856b"
+              stroke="#0b8079"
               strokeWidth="0.3"
               strokeDasharray="1.2 0.8"
             />

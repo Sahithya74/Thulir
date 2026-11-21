@@ -10,13 +10,13 @@ import { useWebGLSupport } from '@/hooks/useDevice'
 /** Architectural line-drawing of a town-centre skyline; strokes are "drawn in" by GSAP. */
 function Skyline() {
   return (
-    <svg viewBox="0 0 800 200" className="w-full max-w-[760px]" fill="none" stroke="#a8b89a" strokeWidth="1.2" aria-hidden>
+    <svg viewBox="0 0 800 200" className="w-full max-w-[760px]" fill="none" stroke="#7fd3c1" strokeWidth="1.2" aria-hidden>
       <path className="draw" pathLength="1" strokeDasharray="1" d="M0 190H800" />
       <path className="draw" pathLength="1" strokeDasharray="1" d="M30 190V120H100V190M30 120L65 100L100 120M45 150H85M45 170H85" />
       <path className="draw" pathLength="1" strokeDasharray="1" d="M130 190V70H230V190M130 70H230M150 95H210M150 120H210M150 145H210M150 170H210M180 70V50H196V70" />
       <path className="draw" pathLength="1" strokeDasharray="1" d="M260 190V140H340V190M260 140H340M280 140V120H350V140M275 165H325" />
       <path className="draw" pathLength="1" strokeDasharray="1" d="M370 190V40H470V190M370 40H470M390 70H450M390 100H450M390 130H450M390 160H450M420 40V20" />
-      <path className="draw" pathLength="1" strokeDasharray="1" d="M500 190V130H610V190M495 130H615M520 150H590M520 170H590" stroke="#c98255" />
+      <path className="draw" pathLength="1" strokeDasharray="1" d="M500 190V130H610V190M495 130H615M520 150H590M520 170H590" stroke="#ee5a36" />
       <path className="draw" pathLength="1" strokeDasharray="1" d="M640 190V95H720V190M640 95H720M655 120H705M655 145H705M655 170H705" />
       <path className="draw" pathLength="1" strokeDasharray="1" d="M745 190V150H790V190" />
     </svg>

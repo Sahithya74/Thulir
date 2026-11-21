@@ -5,15 +5,17 @@ import { FreshnessChip, Price, ProductCard } from '@/components/products/Product
 import { useIsSmall, useQualityTier, useWebGLSupport } from '@/hooks/useDevice'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { STORE_THEMES } from '@/scenes/stores/themes'
+import { planStore } from '@/scenes/stores/walkLayout'
+import { walkCmd } from '@/scenes/stores/walkBus'
 import { pick, useLang, useT } from '@/services/i18n'
 import type { DataSource } from '@/services/catalogApi'
 import { DEFAULT_FILTER, PRICE_STEPS_PAISE, applyProductFilter, brandsOf, type ProductFilter, type SortKey } from './productFilter'
 import { ProductPanel } from './ProductPanel'
+import { DPad, MiniMap } from './WalkOverlay'
 
-// The 3D shelf (three.js) is its own chunk; the list view never pays for it.
-const StoreCanvas = lazy(() => import('@/scenes/stores/StoreCanvas'))
+// The walk-in store (three.js) is its own chunk; the list view never pays for it.
+const StoreWalk = lazy(() => import('@/scenes/stores/StoreWalk'))
 
-const SHELF_CAP = 21
 const SORTS: { key: SortKey; label: Parameters<ReturnType<typeof useT>>[0] }[] = [
   { key: 'relevance', label: 'sortRelevance' },
   { key: 'priceLow', label: 'sortPriceLow' },
@@ -79,17 +81,22 @@ export function StoreShop({ store, catalog, source }: Props) {
     )
 
   const depts = catalog.departments
-  // A shelf shows one department at a time; searching widens it to the whole store.
-  const shelfDept: Department | 'all' = filter.query ? 'all' : filter.department === 'all' ? (depts[0]?.id ?? 'all') : filter.department
-  const effective = shelfMode ? { ...filter, department: shelfDept } : filter
+  // Walking in shows the whole store; filters and search then become a "matches" list to walk to.
+  const effective = shelfMode ? { ...filter, department: 'all' as const } : filter
 
   const filtered = useMemo(
     () => applyProductFilter(catalog.products, effective),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [catalog.products, filter, shelfMode, shelfDept],
+    [catalog.products, filter, shelfMode],
   )
-  const shelfProducts = useMemo(() => filtered.slice(0, SHELF_CAP), [filtered])
+  const filtering = !!filter.query || filter.brand !== 'all' || filter.maxPricePaise != null || filter.onOffer || filter.vegOnly
   const brands = useMemo(() => brandsOf(catalog.products), [catalog.products])
+  const walkProducts = useMemo(() => {
+    const order = new Map(depts.map((d, i) => [d.id, i]))
+    return [...catalog.products].sort((a, b) => (order.get(a.department) ?? 99) - (order.get(b.department) ?? 99))
+  }, [catalog.products, depts])
+  const plan = useMemo(() => planStore(walkProducts), [walkProducts])
+  const [nearDept, setNearDept] = useState<string | null>(null)
 
   // Esc closes the details panel.
   useEffect(() => {
@@ -101,8 +108,7 @@ export function StoreShop({ store, catalog, source }: Props) {
 
   const theme = STORE_THEMES[store.category]
   const hovered = hoveredId ? catalog.products.find((p) => p.id === hoveredId) : null
-  const shown = shelfMode ? shelfProducts : filtered
-  const deptName = shelfDept === 'all' ? t('all') : pick(DEPARTMENT_LABEL[shelfDept], lang)
+  const deptName = nearDept ? pick(DEPARTMENT_LABEL[nearDept as Department], lang) : pick(store.name, lang)
   const checked = new Date(catalog.checkedAt).toLocaleTimeString(lang === 'ta' ? 'ta-IN' : 'en-IN', { hour: '2-digit', minute: '2-digit' })
 
   return (
@@ -111,14 +117,14 @@ export function StoreShop({ store, catalog, source }: Props) {
         {/* departments */}
         <div role="tablist" aria-label={t('department')} className="flex gap-1 overflow-x-auto border-b border-line pb-px">
           {!shelfMode && (
-            <button type="button" role="tab" aria-selected={filter.department === 'all'} onClick={() => set('department', 'all')} className={`tap whitespace-nowrap border-b-2 px-3 text-[0.85rem] font-medium ${filter.department === 'all' ? 'border-terracotta text-forest' : 'border-transparent text-charcoal/65 hover:text-forest'}`}>
+            <button type="button" role="tab" aria-selected={filter.department === 'all'} onClick={() => set('department', 'all')} className={`tap shrink-0 whitespace-nowrap border-b-2 px-3 text-[0.85rem] font-medium ${filter.department === 'all' ? 'border-terracotta text-forest' : 'border-transparent text-charcoal/65 hover:text-forest'}`}>
               {t('all')} <span className="text-charcoal/50">{catalog.products.length}</span>
             </button>
           )}
           {depts.map((d) => {
-            const active = shelfMode && !filter.query ? shelfDept === d.id : filter.department === d.id
+            const active = shelfMode ? nearDept === d.id : filter.department === d.id
             return (
-              <button key={d.id} type="button" role="tab" aria-selected={active} onClick={() => set('department', d.id)} className={`tap whitespace-nowrap border-b-2 px-3 text-[0.85rem] font-medium uppercase tracking-wide ${active ? 'border-terracotta text-forest' : 'border-transparent text-charcoal/65 hover:text-forest'}`}>
+              <button key={d.id} type="button" role="tab" aria-selected={active} title={shelfMode ? t('walkToDept', { dept: pick(DEPARTMENT_LABEL[d.id], lang) }) : undefined} onClick={() => (shelfMode ? walkCmd.emit({ type: 'dept', dept: d.id }) : set('department', d.id))} className={`tap shrink-0 whitespace-nowrap border-b-2 px-3 text-[0.85rem] font-medium uppercase tracking-wide ${active ? 'border-terracotta text-forest' : 'border-transparent text-charcoal/65 hover:text-forest'}`}>
                 {pick(DEPARTMENT_LABEL[d.id], lang)} <span className="text-charcoal/50">{d.count}</span>
               </button>
             )
@@ -149,45 +155,72 @@ export function StoreShop({ store, catalog, source }: Props) {
           <Toggle on={filter.onOffer} onClick={() => set('onOffer', !filter.onOffer)}>{t('onOffer')}</Toggle>
           <Toggle on={filter.vegOnly} onClick={() => set('vegOnly', !filter.vegOnly)}>{t('vegOnly')}</Toggle>
           <div role="group" aria-label="View" className="ml-auto flex">
-            <button type="button" aria-pressed={shelfMode} disabled={!webgl} onClick={() => setView('shelf')} className={`min-h-10 border px-3 text-[0.78rem] disabled:opacity-40 lg:min-h-9 ${shelfMode ? 'border-forest bg-forest text-cream' : 'border-forest/25 text-forest'}`}>{t('viewShelf')}</button>
+            <button type="button" aria-pressed={shelfMode} disabled={!webgl} onClick={() => setView('shelf')} className={`min-h-10 border px-3 text-[0.78rem] disabled:opacity-40 lg:min-h-9 ${shelfMode ? 'border-forest bg-forest text-cream' : 'border-forest/25 text-forest'}`}>{t('viewWalk')}</button>
             <button type="button" aria-pressed={!shelfMode} onClick={() => setView('grid')} className={`min-h-10 border border-l-0 px-3 text-[0.78rem] lg:min-h-9 ${!shelfMode ? 'border-forest bg-forest text-cream' : 'border-forest/25 text-forest'}`}>{t('viewGrid')}</button>
           </div>
         </div>
 
         <p className="mt-2 text-[0.75rem] text-charcoal/65" aria-live="polite">
           {t('resultsCount', { n: filtered.length })}
-          {shelfMode && filtered.length > SHELF_CAP ? ` · ${SHELF_CAP} ${t('viewShelf')}` : ''}
         </p>
 
         {/* stage */}
         {shelfMode ? (
-          <div className="relative mt-2 h-[60dvh] min-h-[360px] max-h-[680px] overflow-hidden border border-line" style={{ background: theme.sky }}>
-            <Suspense fallback={<div role="status" className="grid h-full place-items-center text-[0.8rem] text-charcoal/65">{t('loading')}…</div>}>
-              {shown.length > 0 && (
-                <StoreCanvas
+          <>
+            <div className="relative mt-2 h-[68dvh] min-h-[400px] max-h-[760px] overflow-hidden rounded-lg border border-line shadow-[0_18px_50px_-24px_rgba(15,42,67,0.55)]" style={{ background: theme.sky }}>
+              <Suspense fallback={<div role="status" className="grid h-full place-items-center text-[0.8rem] text-charcoal/65">{t('loading')}…</div>}>
+                <StoreWalk
+                  plan={plan}
                   theme={theme}
-                  products={shown}
+                  storeName={store.name}
                   selectedId={selectedId}
                   hoveredId={hoveredId}
                   reducedMotion={reduced}
                   tier={tier}
-                  label={t('shelfLabel', { dept: deptName })}
+                  label={t('shelfLabel')}
                   onHover={setHoveredId}
                   onSelect={(id) => select(id)}
+                  onNearDept={setNearDept}
                 />
+              </Suspense>
+              <p className="pointer-events-none absolute left-3 top-3 rounded-md bg-forest/85 px-3 py-1.5 text-[0.72rem] uppercase tracking-[0.12em] text-cream backdrop-blur">
+                <span className="opacity-70">{t('walkYouAreIn')} · </span>{deptName}
+              </p>
+              <button type="button" onClick={() => walkCmd.emit({ type: 'entrance' })} className="absolute right-3 top-3 rounded-md bg-white/90 px-3 py-1.5 text-[0.72rem] font-medium text-forest shadow backdrop-blur hover:bg-white">
+                {t('walkEntrance')}
+              </button>
+              {hovered && (
+                <div className="pointer-events-none absolute bottom-16 left-3 max-w-[16rem] rounded-md border border-line bg-cream px-3 py-2 shadow-[0_10px_30px_-12px_rgba(15,42,67,0.45)] sm:bottom-3 sm:left-auto sm:right-[12.5rem]">
+                  <p className="font-display text-[1rem] leading-tight text-forest">{pick(hovered.name, lang)}</p>
+                  <p className="text-[0.72rem] text-charcoal/65">{hovered.brand} · {hovered.unit}</p>
+                  <div className="mt-1 flex items-center justify-between gap-3"><Price product={hovered} /><FreshnessChip product={hovered} /></div>
+                </div>
               )}
-            </Suspense>
-            {shown.length === 0 && <p className="absolute inset-0 grid place-items-center text-[0.9rem] text-charcoal/70">{t('noProducts')}</p>}
-            <p className="pointer-events-none absolute left-3 top-3 border border-line bg-cream/90 px-2.5 py-1 text-[0.7rem] uppercase tracking-[0.12em] text-forest">{deptName}</p>
-            {hovered && (
-              <div className="pointer-events-none absolute bottom-3 left-3 max-w-[16rem] border border-line bg-cream px-3 py-2 shadow-[0_10px_30px_-12px_rgba(32,37,34,0.45)]">
-                <p className="font-display text-[1rem] leading-tight text-forest">{pick(hovered.name, lang)}</p>
-                <p className="text-[0.72rem] text-charcoal/65">{hovered.brand} · {hovered.unit}</p>
-                <div className="mt-1 flex items-center justify-between gap-3"><Price product={hovered} /><FreshnessChip product={hovered} /></div>
+              <div className="absolute bottom-3 left-3 sm:hidden">
+                <DPad labels={{ forward: t('walkForward'), back: t('walkBack'), left: t('walkLeft'), right: t('walkRight') }} />
+              </div>
+              <div className="absolute bottom-3 right-3">
+                <MiniMap plan={plan} accent={theme.accent} label={t('walkMap')} />
+              </div>
+              <p className="pointer-events-none absolute bottom-3 left-3 hidden max-w-[22rem] rounded-md bg-white/80 px-2.5 py-1 text-[0.7rem] text-forest/80 backdrop-blur sm:block">{t('shelfHint')}</p>
+            </div>
+            {filtering && (
+              <div className="mt-4">
+                <p className="text-[0.8rem] font-medium text-forest">{t('walkFound')}</p>
+                {filtered.length === 0 ? (
+                  <p className="mt-2 text-[0.85rem] text-charcoal/70">{t('noProducts')}</p>
+                ) : (
+                  <ul className="mt-2 grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
+                    {filtered.map((p) => (
+                      <li key={p.id}>
+                        <ProductCard product={p} selected={selectedId === p.id} hovered={hoveredId === p.id} onSelect={(id) => select(id)} onHover={setHoveredId} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
-            {shown.length > 0 && <p className="pointer-events-none absolute bottom-3 right-3 hidden text-[0.7rem] text-forest/70 sm:block">{t('shelfHint')}</p>}
-          </div>
+          </>
         ) : filtered.length === 0 ? (
           <p className="mt-6 border border-dashed border-forest/25 px-4 py-10 text-center text-[0.9rem] text-charcoal/70">{t('noProducts')}</p>
         ) : (

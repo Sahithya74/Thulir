@@ -62,14 +62,20 @@ start-up through the real order flow, so the portals are not empty.
 
 ## What is real
 
-- **Design + entry:** palette, Fraunces / Inter / Noto Sans Tamil (bundled, no CDN), GSAP entry sequence,
+- **Design + entry:** bright ink / teal / coral palette, Fraunces / Inter / Noto Sans Tamil (bundled, no CDN), GSAP entry sequence,
   reduced-motion aware, EN / தமிழ் switcher, ₹ formatting.
 - **3D mid-city district:** procedural geometry (no model files), instanced blocks and vehicles, six distinct store
-  buildings, GSAP camera fly-ins, drag / wheel / pinch / arrow-key control, focusable store pins. List and schematic
-  map views are always available; low-power devices default to the list.
+  buildings, GSAP camera fly-ins, drag / wheel / pinch / arrow-key control, focusable store pins. Every shop has its
+  own colour, an illuminated name board and a glowing beacon so it can be spotted from afar; the street is alive with
+  pedestrians, traffic, drifting clouds and birds. List and schematic map views are always available; low-power
+  devices default to the list.
 - **Location + delivery:** detect / search / manual address / saved addresses, server-checked pincodes, per-store
   distance, ETA and "delivers to you" computed from the chosen place.
-- **Store interiors + catalog:** one reusable 3D environment with six themes, department shelves, and a list/grid view.
+- **Store interiors + catalog:** a walk-in 3D store — enter through sliding doors and move freely (W A S D / arrows,
+  drag to look, tap the floor or the minimap to walk, on-screen d-pad on phones) between aisles with department signs,
+  double-sided gondolas, wall runs, checkouts and shoppers. Tapping a product (or a search result, or a department tab)
+  walks you to it. Packs are drawn to look like the real product — a salt pack shows a window of salt crystals, rice
+  shows grains, dal shows lentils. Six themes, plus a list/grid view.
   100 demo products, in-store and cross-store search (English, Tamil and Latin transliteration), filters, sorting,
   substitutions, and eight optional "What are we shopping for today?" missions.
 - **Freshness engine (the foundation):** expiry lives on **batches**. Expired, expires-today and unreadable-date stock is

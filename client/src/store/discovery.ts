@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { StoreCategory } from '@thulir/shared'
 
-export type DiscoveryView = 'immersive' | 'list' | 'map'
+export type DiscoveryView = 'arc' | 'immersive' | 'list' | 'map'
 
 interface DiscoveryState {
   view: DiscoveryView
@@ -23,7 +23,7 @@ interface DiscoveryState {
 }
 
 export const useDiscovery = create<DiscoveryState>((set) => ({
-  view: 'immersive',
+  view: 'arc',
   setView: (view) => set({ view }),
   query: '',
   setQuery: (query) => set({ query }),

@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 import { TopBar } from '@/components/navigation/TopBar'
-import { useQualityTier, useIsSmall, useWebGLSupport } from '@/hooks/useDevice'
+import { useQualityTier, useWebGLSupport } from '@/hooks/useDevice'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useT, type DictKey } from '@/services/i18n'
 import { useDiscovery, type DiscoveryView } from '@/store/discovery'
@@ -10,6 +10,7 @@ import { useLocation } from '@/store/location'
 import { useStores } from '@/store/stores'
 import { PinOverlay } from '@/scenes/neighbourhood/PinOverlay'
 import { filterStores } from './filter'
+import { ArcView } from './ArcView'
 import { DiscoveryPanel } from './DiscoveryPanel'
 import { MapView } from './MapView'
 import { SceneControls } from './SceneControls'
@@ -33,6 +34,7 @@ function SceneSkeleton() {
 }
 
 const TABS: { id: DiscoveryView; label: DictKey }[] = [
+  { id: 'arc', label: 'viewArc' },
   { id: 'immersive', label: 'viewImmersive' },
   { id: 'list', label: 'viewList' },
   { id: 'map', label: 'viewMap' },
@@ -56,18 +58,13 @@ export default function DiscoveryPage() {
   const stores = useStores((s) => s.stores)
   const hasLocation = useLocation((s) => s.location !== null)
   const openPicker = useLocation((s) => s.openPicker)
-  const small = useIsSmall()
   const webgl = useWebGLSupport()
   const tier = useQualityTier()
   const reduced = useReducedMotion()
   const searchRef = useRef<HTMLInputElement>(null)
 
-  // Small screens and devices without WebGL start in the list; 3D stays available when WebGL exists.
-  useEffect(() => {
-    if (!webgl || small) d.setView('list')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-  const view: DiscoveryView = webgl || d.view !== 'immersive' ? d.view : 'list'
+  // Without WebGL the 3D district is unavailable; everything else works everywhere.
+  const view: DiscoveryView = webgl || d.view !== 'immersive' ? d.view : 'arc'
 
   // The journey starts with a place: ask for one until the customer has chosen.
   useEffect(() => {
@@ -98,33 +95,43 @@ export default function DiscoveryPage() {
     searchRef.current?.scrollIntoView({ block: 'nearest' })
   }
 
-  const staged = view !== 'list' // 3D and map share a sidebar + stage layout
+  const tabs = (
+    <div className="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-line px-4 py-2" role="tablist" aria-label="View">
+      {TABS.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          role="tab"
+          aria-selected={view === tab.id}
+          disabled={tab.id === 'immersive' && !webgl}
+          onClick={() => d.setView(tab.id)}
+          className={`tap shrink-0 whitespace-nowrap rounded-full px-3.5 text-[0.8rem] font-medium disabled:opacity-40 ${view === tab.id ? 'bg-forest text-cream' : 'text-forest hover:bg-forest/10'}`}
+        >
+          {t(tab.label)}
+        </button>
+      ))}
+      <Link to="/missions" className="tap ml-auto flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-[0.8rem] font-medium text-terracotta hover:bg-terracotta/10">
+        {t('missionsLink')} <span aria-hidden>→</span>
+      </Link>
+    </div>
+  )
+
+  const staged = view !== 'list' && view !== 'arc' // 3D and map share a sidebar + stage layout
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-cream">
       <TopBar />
 
+      {view === 'arc' ? (
+        <ArcView ref={searchRef} stores={filtered} tabs={tabs} />
+      ) : (
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <aside
           className={`flex min-h-0 flex-col bg-cream ${
             staged ? 'order-2 max-h-[46dvh] border-t border-line lg:order-1 lg:max-h-none lg:w-[390px] lg:shrink-0 lg:border-r lg:border-t-0' : 'order-1 flex-1'
           }`}
         >
-          <div className="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-line px-4 py-2" role="tablist" aria-label="View">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={view === tab.id}
-                disabled={tab.id === 'immersive' && !webgl}
-                onClick={() => d.setView(tab.id)}
-                className={`tap whitespace-nowrap px-3 text-[0.8rem] font-medium disabled:opacity-40 ${view === tab.id ? 'bg-forest text-cream' : 'text-forest hover:bg-forest/10'}`}
-              >
-                {t(tab.label)}
-              </button>
-            ))}
-          </div>
+          {tabs}
           <Link to="/missions" className="tap flex shrink-0 items-center justify-between border-b border-line bg-limestone/70 px-4 text-[0.82rem] text-forest hover:bg-limestone">
             <span className="font-display text-[0.95rem]">{t('missionsLink')}</span>
             <span aria-hidden>→</span>
@@ -159,8 +166,9 @@ export default function DiscoveryPage() {
           </main>
         )}
       </div>
+      )}
 
-      {!staged && d.selectedId && (
+      {!staged && view !== 'arc' && d.selectedId && (
         <div className="fixed inset-x-3 bottom-3 z-50 sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[360px]">
           <SelectedStorePanel />
         </div>

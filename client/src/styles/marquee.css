@@ -13,3 +13,20 @@
 .marquee-rev {
   animation: marquee 34s linear infinite reverse;
 }
+
+/* Shop arc: packs bob gently on the centre card. */
+@keyframes arc-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-9px) rotate(1.5deg);
+  }
+}
+.arc-bob {
+  animation: arc-bob 3.4s ease-in-out infinite;
+}
+.arc-pack {
+  transition: transform 0.25s ease-out;
+}

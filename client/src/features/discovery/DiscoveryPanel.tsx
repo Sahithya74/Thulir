@@ -5,22 +5,22 @@ import { categoryKey, pick, useLang, useT, type DictKey } from '@/services/i18n'
 import { useDiscovery } from '@/store/discovery'
 import { useStores } from '@/store/stores'
 
-const CATEGORIES: StoreCategory[] = ['supermarket', 'provision', 'fruit_veg', 'bakery', 'dairy', 'household']
-const FLAGS: { key: 'openNow' | 'fast' | 'offers' | 'nearby'; label: DictKey }[] = [
+export const CATEGORIES: StoreCategory[] = ['supermarket', 'provision', 'fruit_veg', 'bakery', 'dairy', 'household']
+export const FLAGS: { key: 'openNow' | 'fast' | 'offers' | 'nearby'; label: DictKey }[] = [
   { key: 'openNow', label: 'openNow' },
   { key: 'fast', label: 'fastDelivery' },
   { key: 'nearby', label: 'nearby' },
   { key: 'offers', label: 'offers' },
 ]
 
-function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+export function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`min-h-10 whitespace-nowrap border px-3 text-[0.78rem] lg:min-h-8 transition-colors ${
-        active ? 'border-forest bg-forest text-cream' : 'border-forest/25 text-forest hover:border-forest/60'
+      className={`min-h-10 shrink-0 whitespace-nowrap rounded-full border px-3.5 text-[0.78rem] lg:min-h-8 transition-colors ${
+        active ? 'border-forest bg-forest text-cream' : 'border-forest/25 bg-white/60 text-forest hover:border-forest/60'
       }`}
     >
       {children}

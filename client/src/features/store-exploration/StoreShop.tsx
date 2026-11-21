@@ -95,8 +95,9 @@ export function StoreShop({ store, catalog, source }: Props) {
   const walkProducts = useMemo(() => {
     const order = new Map(depts.map((d, i) => [d.id, i]))
     const sorted = [...catalog.products].sort((a, b) => (order.get(a.department) ?? 99) - (order.get(b.department) ?? 99))
-    // A real shop repeats its lines across several runs; a small catalogue is spread over a believable floor.
-    return padProducts(sorted, store.category === 'supermarket' ? 3 : sorted.length < 24 ? 2 : 1)
+    // A real shop shows the same lines in several places; a smaller range is spread to fill both walls.
+    const target = store.category === 'supermarket' ? 100 : 64
+    return padProducts(sorted, Math.max(1, Math.min(3, Math.round(target / Math.max(1, sorted.length)))))
   }, [catalog.products, depts, store.category])
   const sellsProduce = store.category === 'supermarket' || store.category === 'fruit_veg'
   const plan = useMemo(() => planStore(walkProducts, { produce: sellsProduce }), [walkProducts, sellsProduce])
@@ -200,13 +201,13 @@ export function StoreShop({ store, catalog, source }: Props) {
                   <div className="mt-1 flex items-center justify-between gap-3"><Price product={hovered} /><FreshnessChip product={hovered} /></div>
                 </div>
               )}
-              <div className="absolute bottom-3 left-3 sm:hidden">
+              <div className="absolute bottom-3 left-3">
                 <DPad labels={{ forward: t('walkForward'), back: t('walkBack'), left: t('walkLeft'), right: t('walkRight') }} />
               </div>
               <div className="absolute bottom-3 right-3">
                 <MiniMap plan={plan} accent={theme.accent} label={t('walkMap')} />
               </div>
-              <p className="pointer-events-none absolute bottom-3 left-3 hidden max-w-[22rem] rounded-md bg-white/80 px-2.5 py-1 text-[0.7rem] text-forest/80 backdrop-blur sm:block">{t('shelfHint')}</p>
+              <p className="pointer-events-none absolute bottom-3 left-[11.5rem] hidden max-w-[20rem] rounded-xl bg-white/80 px-3 py-1.5 text-[0.7rem] text-forest/80 backdrop-blur sm:block">{t('shelfHint')}</p>
             </div>
             {filtering && (
               <div className="mt-4">

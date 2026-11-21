@@ -7,15 +7,15 @@ import type { Department, ProductView } from '@thulir/shared'
  * Products flow through shelf faces in department order. A face is one side of a gondola (a free-standing double-sided
  * shelf run) or a stretch of back wall. Small stores get just the wall; bigger ones grow aisles.
  */
-export const FACE_LEN = 12
+export const FACE_LEN = 11
 export const PER_LEVEL = 3
 export const PER_FACE = PER_LEVEL * 3
 /** Most products one shelf face holds (four across, three high). */
-const PER_FACE_MAX = 12
+const PER_FACE_MAX = 20
 /** Top row first, so the first products of a department read first. */
-export const LEVEL_Y = [4.15, 2.35, 0.55]
+export const LEVEL_Y = [5.95, 4.15, 2.35, 0.55]
 export const EYE_Y = 3.2
-export const WALL_H = 9.5
+export const WALL_H = 12
 export const AISLE = 5.5
 export const GONDOLA_HALF_DEPTH = 1.3
 export const CAMERA_RADIUS = 0.85
@@ -60,17 +60,17 @@ export interface Gondola {
   back: number | null
 }
 
-/** Free-standing displays on the shop floor (not shelving). */
-export interface Fixture {
-  kind: 'produce'
+/** A stack of goods standing against a wall between two shelf bays (sacks, cartons or crates). */
+export interface Stack {
+  kind: 'sacks' | 'cartons' | 'crates'
   x: number
   z: number
+  rotY: number
   w: number
-  d: number
 }
 
 export interface WalkPlan {
-  fixtures: Fixture[]
+  stacks: Stack[]
   width: number
   depth: number
   faces: Face[]
@@ -112,8 +112,10 @@ export function padProducts(products: ProductView[], copies: number): ProductVie
   return out
 }
 
+const SLOT_MAX = 4.2
+
 export function planStore(products: ProductView[], opts: { produce?: boolean } = {}): WalkPlan {
-  // Whole departments share a shelf face where they fit, so a sign over an aisle is honest about what is under it.
+  // Whole departments share a shelf bay where they fit, so a sign over a bay is honest about what is under it.
   const byDept = new Map<Department, ProductView[]>()
   for (const p of products) byDept.set(p.department as Department, [...(byDept.get(p.department as Department) ?? []), p])
   const pieces: ProductView[][] = []
@@ -129,8 +131,8 @@ export function planStore(products: ProductView[], opts: { produce?: boolean } =
     else chunks.push([...piece])
   }
   if (chunks.length === 0) chunks.push([])
-  // Anything beyond a handful of products deserves a proper aisle, not just a wall: split until there are three faces.
-  while (chunks.length < 3 && products.length >= 8) {
+  // A shop is more than a wall: split until there are enough bays to line both sides.
+  while (chunks.length < 4 && products.length >= 12) {
     let at = 0
     chunks.forEach((c, i) => {
       if (c.length > chunks[at].length) at = i
@@ -142,83 +144,71 @@ export function planStore(products: ProductView[], opts: { produce?: boolean } =
   }
   const faceCount = chunks.length
 
-  const wallFaces = faceCount === 1 ? 1 : faceCount === 2 ? 2 : faceCount % 2 === 1 ? 1 : 2
-  const gondolaSides = faceCount - wallFaces
-  const gondolaCount = Math.ceil(gondolaSides / 2)
-  const cols = gondolaCount >= 3 ? 2 : 1
-  const rows = Math.ceil(gondolaCount / cols)
-  const width = faceCount === 1 ? 22 : cols === 2 ? 38 : 28
+  const width = 34
+  const backCount = faceCount <= 3 ? 1 : faceCount <= 6 ? 2 : 3
+  const sideCount = faceCount - backCount
+  const leftN = Math.ceil(sideCount / 2)
+  const rightN = sideCount - leftN
 
   const faces: Face[] = []
-  const gondolas: Gondola[] = []
   const blocks: Box[] = []
-  const lanesZ: number[] = []
+  const stacks: Stack[] = []
 
-  const SLOT_MAX = 4.2
-  const makeFace = (list: ProductView[], index: number, kind: Face['kind'], x: number, z: number, rotY: number): Face => {
-    const perLevel = Math.max(1, Math.ceil(list.length / 3))
+  const makeFace = (list: ProductView[], index: number, x: number, z: number, rotY: number): Face => {
+    const levels = LEVEL_Y.length
+    const perLevel = Math.max(1, Math.ceil(list.length / levels))
     const w = Math.min(FACE_LEN / perLevel, SLOT_MAX)
     const slots = list.map((product, i) => {
       const level = Math.floor(i / perLevel)
       const idx = i % perLevel
       const count = Math.min(perLevel, list.length - level * perLevel)
-      return { x: (idx - (count - 1) / 2) * w, y: LEVEL_Y[level] ?? LEVEL_Y[2], w, product }
+      return { x: (idx - (count - 1) / 2) * w, y: LEVEL_Y[level] ?? LEVEL_Y[levels - 1], w, product }
     })
     const depts = [...new Set(list.map((p) => p.department as Department))]
-    return { index, kind, x, z, rotY, dept: depts[0] ?? 'pantry', depts, length: Math.max(6, perLevel * w + 0.6), slots }
+    return { index, kind: 'wall', x, z, rotY, dept: depts[0] ?? 'pantry', depts, length: Math.max(6, perLevel * w + 0.6), slots }
   }
 
-  // back wall
-  const lens = chunks.slice(0, wallFaces).map((c) => Math.max(6, Math.min(Math.ceil(c.length / 3), 4) * Math.min(FACE_LEN / Math.max(1, Math.ceil(c.length / 3)), SLOT_MAX) + 0.6))
-  const total = lens.reduce((a2, b2) => a2 + b2, 0) + (wallFaces - 1) * 1.2
+  // back wall, centred
+  const lens = chunks.slice(0, backCount).map((c) => Math.max(6, Math.ceil(c.length / LEVEL_Y.length) * Math.min(FACE_LEN / Math.max(1, Math.ceil(c.length / LEVEL_Y.length)), SLOT_MAX) + 0.6))
+  const total = lens.reduce((a2, b2) => a2 + b2, 0) + (backCount - 1) * 1.2
   let cx = -total / 2
-  for (let i = 0; i < wallFaces; i++) {
+  for (let i = 0; i < backCount; i++) {
     const x = cx + lens[i] / 2
     cx += lens[i] + 1.2
-    faces.push(makeFace(chunks[i], faces.length, 'wall', x, 0.6, 0))
+    faces.push(makeFace(chunks[i], faces.length, x, 0.6, 0))
   }
   blocks.push({ minX: -width / 2, maxX: width / 2, minZ: -1, maxZ: 2.4 })
 
-  // gondolas, in rows from the back
-  const firstZ = 7.95
-  const rowStep = AISLE + GONDOLA_HALF_DEPTH * 2
-  const colXs = cols === 1 ? [0] : [-8.6, 8.6]
-  let chunk = wallFaces
-  let g = 0
-  for (let r = 0; r < rows; r++) {
-    const gz = firstZ + r * rowStep
-    lanesZ.push(gz - GONDOLA_HALF_DEPTH - AISLE / 2)
-    for (let c = 0; c < cols && g < gondolaCount; c++, g++) {
-      const gx = colXs[c]
-      const frontIdx = faces.length
-      const front = makeFace(chunks[chunk++], frontIdx, 'gondola', gx, gz + 0.62, 0)
-      faces.push(front)
-      let backIdx: number | null = null
-      let backLen = 0
-      if (chunk < chunks.length) {
-        backIdx = faces.length
-        const back = makeFace(chunks[chunk++], backIdx, 'gondola', gx, gz - 0.62, Math.PI)
-        faces.push(back)
-        backLen = back.length
+  // both side walls, bay after bay; a stack of goods stands in the gap after every second bay
+  const sideX = width / 2 - 0.6
+  const STACKS: Stack['kind'][] = opts.produce ? ['crates', 'sacks', 'cartons'] : ['sacks', 'cartons', 'crates']
+  let chunk = backCount
+  let stackNo = 0
+  const lay = (n: number, side: -1 | 1) => {
+    let z = 4.4
+    for (let k = 0; k < n; k++) {
+      const probe = chunks[chunk]
+      const len = Math.max(6, Math.ceil(probe.length / LEVEL_Y.length) * Math.min(FACE_LEN / Math.max(1, Math.ceil(probe.length / LEVEL_Y.length)), SLOT_MAX) + 0.6)
+      const f = makeFace(chunks[chunk++], faces.length, side * sideX, z + len / 2, side < 0 ? Math.PI / 2 : -Math.PI / 2)
+      faces.push(f)
+      blocks.push({ minX: side * sideX - 1.5, maxX: side * sideX + 1.5, minZ: z - 0.1, maxZ: z + len + 0.1 })
+      z += len + 0.2
+      if (k % 2 === 1 || k === n - 1) {
+        stacks.push({ kind: STACKS[stackNo++ % STACKS.length], x: side * (width / 2 - 1.1), z: z + 1.5, rotY: f.rotY, w: 3 })
+        blocks.push({ minX: side * (width / 2 - 1.1) - 1.4, maxX: side * (width / 2 - 1.1) + 1.4, minZ: z + 0.1, maxZ: z + 2.9 })
+        z += 3.2
       }
-      const length = Math.max(front.length, backLen)
-      gondolas.push({ x: gx, z: gz, length: length + 0.4, front: frontIdx, back: backIdx })
-      blocks.push({ minX: gx - length / 2 - 0.4, maxX: gx + length / 2 + 0.4, minZ: gz - GONDOLA_HALF_DEPTH, maxZ: gz + GONDOLA_HALF_DEPTH })
     }
+    return z
   }
-  const lastGz = rows > 0 ? firstZ + (rows - 1) * rowStep : 1.2
-  const frontShelf = lastGz + GONDOLA_HALF_DEPTH
-  lanesZ.push(frontShelf + AISLE / 2)
+  const leftEnd = lay(leftN, -1)
+  const rightEnd = lay(rightN, 1)
 
   // checkout zone and entrance
-  const roomy = !!opts.produce && products.length >= 10
-  const depth = Math.max(frontShelf + AISLE + (roomy ? 12.5 : 7.5), 16.5)
-  // open produce tables between the aisles and the tills, where a real shop puts its freshest stock
-  const fixtures: Fixture[] = roomy ? [-1, 1].map((s2) => ({ kind: 'produce' as const, x: s2 * width * 0.22, z: frontShelf + AISLE + 2.4, w: 6.2, d: 2.8 })) : []
-  for (const f of fixtures) blocks.push({ minX: f.x - f.w / 2 - 0.3, maxX: f.x + f.w / 2 + 0.3, minZ: f.z - f.d / 2 - 0.3, maxZ: f.z + f.d / 2 + 0.3 })
-  const counters = [{ x: -width / 2 + 6.5, z: depth - 4.2 }, { x: width / 2 - 6.5, z: depth - 4.2 }]
+  const depth = Math.max(Math.max(leftEnd, rightEnd) + 11, 34)
+  const counters = [{ x: -width / 2 + 7.5, z: depth - 4.6 }, { x: width / 2 - 7.5, z: depth - 4.6 }]
   for (const c of counters) blocks.push({ minX: c.x - 2.9, maxX: c.x + 2.9, minZ: c.z - 1.1, maxZ: c.z + 1.1 })
-  const lanesX = cols === 2 ? [-width / 2 + 2.3, 0, width / 2 - 2.3] : [-width / 2 + 2.3, width / 2 - 2.3]
+  const lanesX = [-width / 2 + 3.5, 0, width / 2 - 3.5]
 
   const where = new Map<string, { face: number; slot: number }>()
   const deptFace = new Map<Department, number>()
@@ -230,16 +220,16 @@ export function planStore(products: ProductView[], opts: { produce?: boolean } =
   }
 
   return {
-    fixtures,
+    stacks,
     width,
     depth,
     faces,
-    gondolas,
+    gondolas: [],
     blocks,
-    lanesZ,
+    lanesZ: [depth - 9],
     lanesX,
     counters,
-    door: { x: 0, z: depth, w: 6.4 },
+    door: { x: 0, z: depth, w: 7.2 },
     spawn: { x: 0, z: depth - 3.2, yaw: 0 },
     where,
     deptFace,
@@ -253,7 +243,7 @@ export function standFor(plan: WalkPlan, id: string) {
   const face = plan.faces[at.face]
   const slot = face.slots[at.slot]
   const w = slotWorld(face, slot)
-  const dist = face.kind === 'wall' ? 4.6 : 3.7
+  const dist = 5.2
   const x = clamp(w.x + w.nx * dist, -plan.width / 2 + 1.6, plan.width / 2 - 1.6)
   const z = w.z + w.nz * dist
   const dx = w.x - x
@@ -264,7 +254,7 @@ export function standFor(plan: WalkPlan, id: string) {
 
 export function standForFace(plan: WalkPlan, faceIndex: number) {
   const f = plan.faces[faceIndex]
-  const dist = f.kind === 'wall' ? 7 : 4.4
+  const dist = 7.5
   const n = rot(0, 1, f.rotY)
   const x = clamp(f.x + n.x * dist, -plan.width / 2 + 1.6, plan.width / 2 - 1.6)
   const z = f.z + n.z * dist

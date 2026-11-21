@@ -4,7 +4,7 @@ import { Color, DoubleSide, InstancedMesh, MathUtils, MeshStandardMaterial, Obje
 import { DEPARTMENT_LABEL, type Localised } from '@thulir/shared'
 import { BOX, CYL, PLANE, mat } from '@/scenes/neighbourhood/shared3d'
 import { floorTexture, signTexture } from './packTexture'
-import { AISLE, EYE_Y, GONDOLA_HALF_DEPTH, LEVEL_Y, WALL_H, type Face, type WalkPlan } from './walkLayout'
+import { AISLE, EYE_Y, LEVEL_Y, WALL_H, type Face, type Stack, type WalkPlan } from './walkLayout'
 import type { StoreTheme } from './themes'
 
 const glow = (color: string, i = 1.4) => mat(color, { emissive: color, emissiveIntensity: i, roughness: 0.5 })
@@ -58,8 +58,8 @@ export function WalkRoom({ plan, theme, storeName, reducedMotion }: { plan: Walk
       <mesh geometry={BOX} material={mat(theme.wall)} position={[0, WALL_H - 1.2, D + 0.3]} scale={[plan.door.w + 0.4, 2.4, 0.6]} />
 
       {/* shop name board above the back wall */}
-      <mesh geometry={PLANE} material={nameMat} position={[0, WALL_H - 1.5, 0.13]} scale={[Math.min(W * 0.46, 13), Math.min(W * 0.46, 13) / 4, 1]} />
-      <mesh geometry={BOX} material={mat(theme.accent)} position={[0, WALL_H - 2.9, 0.1]} scale={[W, 0.16, 0.08]} />
+      <mesh geometry={PLANE} material={nameMat} position={[0, WALL_H - 1.5, 0.13]} scale={[Math.min(W * 0.4, 11), Math.min(W * 0.4, 11) / 4, 1]} />
+      <mesh geometry={BOX} material={mat(theme.accent)} position={[0, WALL_H - 3.1, 0.1]} scale={[W, 0.16, 0.08]} />
 
       {/* ceiling with light panels (emissive, so there is no light-count cost) */}
       <mesh geometry={PLANE} material={mat('#f7fbff', { roughness: 0.95, side: DoubleSide })} rotation={[Math.PI / 2, 0, 0]} position={[0, WALL_H, D / 2]} scale={[W, D, 1]} />
@@ -75,9 +75,10 @@ export function WalkRoom({ plan, theme, storeName, reducedMotion }: { plan: Walk
       ))}
       <Trolleys x={plan.door.w / 2 + 3.2} z={D - 2.2} theme={theme} />
       <BasketStack x={-plan.door.w / 2 - 3} z={D - 1.6} />
-      {plan.fixtures.map((f, i) => (
-        <ProduceIsland key={i} x={f.x} z={f.z} w={f.w} d={f.d} theme={theme} seed={i + 1} />
+      {plan.stacks.map((st, i) => (
+        <GoodsStack key={i} stack={st} theme={theme} seed={i + 1} />
       ))}
+      <Banners plan={plan} theme={theme} reducedMotion={reducedMotion} />
       <Ducting W={W} D={D} />
     </group>
   )
@@ -128,27 +129,100 @@ function Heap({ colors, seed, x, y, z }: { colors: string[]; seed: number; x: nu
   )
 }
 
-/** An open produce table: wooden crates of fruit and vegetables under a hanging sign. */
-function ProduceIsland({ x, z, w, d, theme, seed }: { x: number; z: number; w: number; d: number; theme: StoreTheme; seed: number }) {
-  const sign = useMemo(() => signTexture({ en: 'Fresh produce', ta: 'புதிய காய்கறி, பழங்கள்' }, theme.accent, '#ffffff'), [theme.accent])
-  const signMat = useMemo(() => new MeshStandardMaterial({ map: sign, emissive: '#ffffff', emissiveMap: sign, emissiveIntensity: 0.4, roughness: 0.6 }), [sign])
-  useEffect(() => () => signMat.dispose(), [signMat])
-  const crates = [-1, 0, 1]
+const KRAFT = '#c9a06a'
+const CRATE_COLORS = ['#3b78b8', '#d94f2b', '#3f7a3a', '#e0a82a']
+
+/** A stack of goods against the wall: rice sacks, cartons or crates of produce, piled the way a stockroom does it. */
+function GoodsStack({ stack, theme, seed }: { stack: Stack; theme: StoreTheme; seed: number }) {
+  const { kind } = stack
   return (
-    <group position={[x, 0, z]}>
-      <mesh geometry={BOX} material={mat('#8a5a3c', { roughness: 0.8 })} position={[0, 0.55, 0]} scale={[w, 1.1, d]} />
-      <mesh geometry={BOX} material={mat('#5a3a22')} position={[0, 0.08, 0]} scale={[w + 0.2, 0.16, d + 0.2]} />
-      {crates.map((c, i) => (
-        <group key={c} position={[c * (w / 3), 1.1, 0]}>
-          <mesh geometry={BOX} material={mat('#c99a5c', { roughness: 0.85 })} position={[0, 0.2, 0]} scale={[w / 3 - 0.25, 0.4, d - 0.35]} />
-          <Heap colors={PRODUCE_SETS[(seed * 2 + i) % PRODUCE_SETS.length]} seed={seed * 10 + i} x={0} y={0.4} z={0} />
+    <group position={[stack.x, 0, stack.z]} rotation={[0, stack.rotY, 0]}>
+      <mesh geometry={PLANE} material={mat('#000000', { transparent: true, opacity: 0.18 })} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} scale={[3.1, 1.9, 1]} raycast={() => null} />
+      <mesh geometry={BOX} material={mat('#8a5a3c', { roughness: 0.9 })} position={[0, 0.12, 0]} scale={[2.9, 0.24, 1.5]} />
+      {kind === 'cartons' &&
+        [
+          [-1.0, 0.24, 3],
+          [0, 0.24, 3],
+          [1.0, 0.24, 3],
+          [-0.5, 1.04, 2],
+          [0.5, 1.04, 2],
+          [0, 1.84, 1],
+        ].map(([x, y, n], i) => (
+          <group key={i} position={[x as number, (y as number) + 0.4, 0]} rotation={[0, ((i * 37) % 7 - 3) * 0.015, 0]}>
+            <mesh geometry={BOX} material={mat(KRAFT, { roughness: 0.9 })} scale={[0.96, 0.78, 1.3]} />
+            <mesh geometry={BOX} material={mat('#e8d2a0')} position={[0, 0.2, 0.001]} scale={[0.98, 0.1, 1.32]} />
+            <mesh geometry={BOX} material={mat(i % 2 ? theme.accent : '#d94f2b')} position={[0, -0.05, 0.66]} scale={[0.6, 0.3, 0.01]} />
+            <mesh geometry={BOX} material={mat('#ffffff')} position={[0, -0.05, 0.671]} scale={[0.42, 0.08, 0.005]} />
+            {(n as number) > 0 && null}
+          </group>
+        ))}
+      {kind === 'sacks' &&
+        [
+          [-1.0, 0],
+          [0, 0],
+          [1.0, 0],
+          [-0.5, 1],
+          [0.5, 1],
+          [0, 2],
+        ].map(([x, row], i) => (
+          <group key={i} position={[x as number, 0.45 + (row as number) * 0.62, 0]} rotation={[0, ((i * 53) % 9 - 4) * 0.02, 0]}>
+            <mesh geometry={BOX} material={mat('#e3d2a6', { roughness: 0.95 })} scale={[0.92, 0.56, 1.3]} />
+            <mesh geometry={BOX} material={mat('#d8c490', { roughness: 0.95 })} position={[0, 0.3, 0]} scale={[0.82, 0.08, 1.2]} />
+            <mesh geometry={BOX} material={mat(['#c4322a', '#2f7a6a', '#3b6fa8'][i % 3])} position={[0, 0, 0.66]} scale={[0.66, 0.22, 0.01]} />
+          </group>
+        ))}
+      {kind === 'crates' &&
+        [-1, 0, 1].map((c, i) => (
+          <group key={c} position={[c * 0.98, 0.24, 0]}>
+            {[0, 1].map((lv) => (
+              <group key={lv} position={[0, lv * 0.62 + 0.28, 0]}>
+                <mesh geometry={BOX} material={mat(CRATE_COLORS[(seed + i + lv) % CRATE_COLORS.length], { roughness: 0.55 })} scale={[0.92, 0.5, 1.3]} />
+                <mesh geometry={BOX} material={mat('#10161d')} position={[0, 0.02, 0.656]} scale={[0.5, 0.1, 0.01]} />
+                <Heap colors={PRODUCE_SETS[(seed * 2 + i + lv * 3) % PRODUCE_SETS.length]} seed={seed * 10 + i * 3 + lv} x={0} y={0.18} z={0} />
+              </group>
+            ))}
+          </group>
+        ))}
+    </group>
+  )
+}
+
+const BANNERS = [
+  { en: 'Fresh today', ta: 'இன்று புதியது', x: -8, z: 0.32, tilt: 0.04 },
+  { en: 'Weekly offers', ta: 'வார சலுகைகள்', x: 7, z: 0.5, tilt: -0.05 },
+  { en: 'Local favourites', ta: 'உள்ளூர் விருப்பங்கள்', x: -5, z: 0.7, tilt: 0.03 },
+]
+
+/** Promotional banners hanging over the open floor; they sway a little in the shop air. */
+function Banners({ plan, theme, reducedMotion }: { plan: WalkPlan; theme: StoreTheme; reducedMotion: boolean }) {
+  const refs = useRef<(Group | null)[]>([])
+  const mats = useMemo(
+    () =>
+      BANNERS.map((b, i) => {
+        const tex = signTexture({ en: b.en, ta: b.ta }, i % 2 ? theme.trim : theme.accent, '#ffffff')
+        return new MeshStandardMaterial({ map: tex, emissive: '#ffffff', emissiveMap: tex, emissiveIntensity: 0.32, roughness: 0.7, side: DoubleSide })
+      }),
+    [theme],
+  )
+  useEffect(() => () => mats.forEach((m) => m.dispose()), [mats])
+  useFrame(({ clock }) => {
+    if (reducedMotion) return
+    refs.current.forEach((g, i) => {
+      if (g) {
+        g.rotation.y = Math.sin(clock.elapsedTime * 0.5 + i * 2) * 0.1 + BANNERS[i].tilt
+        g.rotation.z = Math.sin(clock.elapsedTime * 0.8 + i) * 0.015
+      }
+    })
+  })
+  return (
+    <group>
+      {BANNERS.map((b, i) => (
+        <group key={i} ref={(g) => (refs.current[i] = g)} position={[b.x, WALL_H - 4.3, plan.depth * b.z]}>
+          <mesh geometry={CYL} material={mat('#8f9aa8')} position={[-2.4, 2.1, 0]} scale={[0.02, 4.2, 0.02]} />
+          <mesh geometry={CYL} material={mat('#8f9aa8')} position={[2.4, 2.1, 0]} scale={[0.02, 4.2, 0.02]} />
+          <mesh geometry={PLANE} material={mats[i]} scale={[5.6, 1.5, 1]} />
         </group>
       ))}
-      {[-1, 1].map((s) => (
-        <mesh key={s} geometry={CYL} material={mat('#3a2a20')} position={[(s * w) / 2.2, 3.6, 0]} scale={[0.07, 5.2, 0.07]} />
-      ))}
-      <mesh geometry={PLANE} material={signMat} position={[0, 5.4, 0]} scale={[Math.min(w * 0.95, 5.6), 1.4, 1]} />
-      <mesh geometry={PLANE} material={signMat} position={[0, 5.4, 0.01]} rotation={[0, Math.PI, 0]} scale={[Math.min(w * 0.95, 5.6), 1.4, 1]} />
     </group>
   )
 }
@@ -207,17 +281,11 @@ function Entrance({ plan, theme, reducedMotion }: { plan: WalkPlan; theme: Store
 }
 
 function Checkout({ x, z, theme, index, reducedMotion }: { x: number; z: number; theme: StoreTheme; index: number; reducedMotion: boolean }) {
-  const cashier = useRef<Group>(null)
   const screen = useRef<MeshStandardMaterial>(null)
   const belt = useRef<Group>(null)
   useFrame(({ clock }) => {
     if (reducedMotion) return
     const t = clock.elapsedTime + index * 1.7
-    if (cashier.current) {
-      cashier.current.position.y = Math.sin(t * 1.3) * 0.03
-      cashier.current.rotation.y = Math.sin(t * 0.5) * 0.25
-      cashier.current.children[1].rotation.x = -0.4 + Math.sin(t * 2.2) * 0.25
-    }
     if (screen.current) screen.current.emissiveIntensity = 0.9 + Math.sin(t * 6) * 0.2
     if (belt.current) belt.current.position.x = ((t * 0.6) % 1.6) - 0.8
   })
@@ -239,13 +307,6 @@ function Checkout({ x, z, theme, index, reducedMotion }: { x: number; z: number;
       <mesh geometry={PLANE} position={[1.9, 2.25, 0.25]} rotation={[-0.3, 0, 0]} scale={[0.8, 0.5, 1]}>
         <meshStandardMaterial ref={screen} color="#9be8ff" emissive="#7fd3ff" emissiveIntensity={1} />
       </mesh>
-      {/* cashier */}
-      <group ref={cashier} position={[1.2, 0, -1.7]}>
-        <mesh geometry={CYL} material={mat(index ? '#d94f2b' : '#3f7a3a')} position={[0, 2.35, 0]} scale={[0.5, 1.5, 0.4]} />
-        <mesh geometry={BOX} material={mat('#8a5a3c')} position={[0.4, 2.5, 0.35]} scale={[0.18, 0.7, 0.18]} />
-        <mesh geometry={CYL} material={mat('#8a5a3c')} position={[0, 3.45, 0]} scale={[0.34, 0.42, 0.34]} />
-        <mesh geometry={CYL} material={mat('#3a2a20')} position={[0, 3.62, 0]} scale={[0.36, 0.14, 0.36]} />
-      </group>
       {/* lane sign */}
       <mesh geometry={BOX} material={glow(theme.accent, 1)} position={[0, 5.5, 0]} scale={[2.2, 0.8, 0.12]} />
       <mesh geometry={CYL} material={mat('#8f9aa8')} position={[0, 7.4, 0]} scale={[0.05, 3.8, 0.05]} />
@@ -274,15 +335,10 @@ function joinLabels(list: Localised[]): Localised {
 
 /** Hanging department boards over each aisle end and wall run, so the shopper always knows where they are. */
 export function AisleSigns({ plan, theme, labels }: { plan: WalkPlan; theme: StoreTheme; labels?: Partial<Record<string, Localised>> }) {
-  const items: { face: Face; x: number; z: number; rotY: number; wall: boolean }[] = []
-  for (const f of plan.faces) {
-    if (f.kind === 'wall') items.push({ face: f, x: f.x, z: f.z, rotY: 0, wall: true })
-    else items.push({ face: f, x: f.x - (f.length / 2 - 3.4) * Math.cos(f.rotY), z: f.z, rotY: f.rotY, wall: false })
-  }
   return (
     <group>
-      {items.map(({ face, x, z, rotY, wall }) => (
-        <DeptSign key={face.index} label={joinLabels(face.depts.map((d) => labels?.[d] ?? DEPARTMENT_LABEL[d]))} x={x} z={z} rotY={rotY} y={wall ? 6.4 : 7.15} wall={wall} theme={theme} index={face.index} />
+      {plan.faces.map((face) => (
+        <DeptSign key={face.index} label={joinLabels(face.depts.map((d) => labels?.[d] ?? DEPARTMENT_LABEL[d]))} x={face.x} z={face.z} rotY={face.rotY} y={LEVEL_Y[0] + 3.0} wall theme={theme} index={face.index} />
       ))}
     </group>
   )
@@ -314,7 +370,8 @@ function DeptSign({ label, x, z, rotY, y, wall, theme, index }: { label: Localis
 
 /** One shelf face: boards, uprights, back panel, header and (for chillers) a glass front. Products are drawn by the caller. */
 export function Bay({ face, theme }: { face: Face; theme: StoreTheme }) {
-  const f = theme.fixture
+  const chilledBay = face.depts.includes('chilled')
+  const f = chilledBay ? 'chilled' : theme.fixture
   const len = face.length
   const top = LEVEL_Y[0] + 2.0
   const boardMat = mat(theme.shelf, { roughness: f === 'rack' || f === 'chilled' ? 0.3 : 0.75, metalness: f === 'rack' ? 0.35 : 0.05 })
@@ -323,7 +380,11 @@ export function Bay({ face, theme }: { face: Face; theme: StoreTheme }) {
     <group>
       {face.kind === 'wall' && <mesh geometry={BOX} material={mat(back, { roughness: 0.9 })} position={[0, top / 2 + 0.3, -0.55]} scale={[len, top + 0.6, 0.12]} />}
       {LEVEL_Y.map((y) => (
-        <mesh key={y} geometry={BOX} material={boardMat} position={[0, y - 0.07, 0.0]} scale={[len, 0.14, 1.24]} />
+        <group key={y}>
+          <mesh geometry={BOX} material={boardMat} position={[0, y - 0.07, 0.0]} scale={[len, 0.14, 1.24]} />
+          <mesh geometry={BOX} material={mat('#f4f1ea', { roughness: 0.5 })} position={[0, y - 0.1, 0.64]} scale={[len, 0.2, 0.04]} />
+          <mesh geometry={BOX} material={glow('#fff3d8', 0.9)} position={[0, y + 1.5, 0.3]} scale={[len - 0.4, 0.03, 0.06]} />
+        </group>
       ))}
       {[-len / 2, len / 2].map((x) => (
         <mesh key={x} geometry={BOX} material={mat(theme.trim)} position={[x, top / 2, 0.0]} scale={[0.16, top, 1.24]} />
@@ -337,20 +398,6 @@ export function Bay({ face, theme }: { face: Face; theme: StoreTheme }) {
         </>
       )}
       {f === 'counter' && <mesh geometry={BOX} material={glow('#ffd9a0', 1.6)} position={[0, top - 0.05, 0.45]} scale={[len - 0.4, 0.05, 0.12]} />}
-    </group>
-  )
-}
-
-/** Gondola spine and end caps (the two faces are drawn separately as Bay). */
-export function GondolaFrame({ x, z, length, theme }: { x: number; z: number; length: number; theme: StoreTheme }) {
-  const top = LEVEL_Y[0] + 2.0
-  return (
-    <group position={[x, 0, z]}>
-      <mesh geometry={BOX} material={mat(theme.shelf, { roughness: 0.8 })} position={[0, top / 2, 0]} scale={[length - 0.4, top, 0.14]} />
-      <mesh geometry={BOX} material={mat(theme.trim)} position={[0, 0.22, 0]} scale={[length, 0.44, GONDOLA_HALF_DEPTH * 2 - 0.1]} />
-      {[-1, 1].map((s) => (
-        <mesh key={s} geometry={BOX} material={mat(theme.accent)} position={[(s * length) / 2, top / 2, 0]} scale={[0.1, top, GONDOLA_HALF_DEPTH * 2]} />
-      ))}
     </group>
   )
 }

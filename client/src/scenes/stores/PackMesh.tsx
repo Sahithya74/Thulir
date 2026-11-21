@@ -320,7 +320,7 @@ export const PackMesh = memo(function PackMesh({ product: p, x, y, width, index,
   const units = useMemo(() => {
     if (d.kind === 'produce') return [{ x: 0, z: SHELF_FRONT - 0.5, ry: 0 }]
     const R = rand(d.seed)
-    const facings = MathUtils.clamp(Math.floor((width - 0.3) / (W + gap)), 1, lowDetail ? 2 : 4)
+    const facings = MathUtils.clamp(Math.floor((width - 0.12) / (W + gap)), 1, lowDetail ? 2 : 5)
     const frontZ = SHELF_FRONT - D / 2
     const backZ = frontZ - D - 0.05
     const rows = backZ - D / 2 > BACK_LIMIT ? 2 : 1

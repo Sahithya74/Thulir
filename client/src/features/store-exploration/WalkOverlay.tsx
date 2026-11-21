@@ -30,13 +30,16 @@ export function MiniMap({ plan, accent, label }: { plan: WalkPlan; accent: strin
       className="w-36 cursor-pointer rounded-md border border-white/40 bg-white/80 shadow-lg backdrop-blur sm:w-44"
     >
       <rect x={-plan.width / 2} y={0} width={plan.width} height={plan.depth} fill="#eef4fa" stroke="#2b1a12" strokeWidth={0.5} />
-      {plan.faces
-        .filter((f) => f.kind === 'wall')
-        .map((f) => (
-          <rect key={f.index} x={f.x - f.length / 2} y={0.3} width={f.length} height={1.4} fill="#2b1a12" opacity={0.75} rx={0.3} />
-        ))}
-      {plan.gondolas.map((g, i) => (
-        <rect key={i} x={g.x - g.length / 2} y={g.z - 1.3} width={g.length} height={2.6} fill={accent} opacity={0.85} rx={0.4} />
+      {plan.faces.map((f) => {
+        const side = Math.abs(Math.sin(f.rotY)) > 0.5
+        return side ? (
+          <rect key={f.index} x={f.x - 1.1} y={f.z - f.length / 2} width={2.2} height={f.length} fill={accent} opacity={0.85} rx={0.4} />
+        ) : (
+          <rect key={f.index} x={f.x - f.length / 2} y={0.3} width={f.length} height={2.2} fill={accent} opacity={0.85} rx={0.4} />
+        )
+      })}
+      {plan.stacks.map((st, i) => (
+        <rect key={i} x={st.x - 1.2} y={st.z - 1.4} width={2.4} height={2.8} fill="#b08a5a" opacity={0.9} rx={0.3} />
       ))}
       {plan.counters.map((c, i) => (
         <rect key={i} x={c.x - 2.8} y={c.z - 1} width={5.6} height={2} fill="#2b1a12" opacity={0.5} rx={0.3} />

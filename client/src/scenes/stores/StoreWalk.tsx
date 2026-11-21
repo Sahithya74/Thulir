@@ -1,15 +1,14 @@
-import { Suspense, useEffect, useRef } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
-import { ACESFilmicToneMapping, SRGBColorSpace, type PointLight } from 'three'
+import { ACESFilmicToneMapping, PMREMGenerator, SRGBColorSpace, type PointLight } from 'three'
 import type { Localised } from '@thulir/shared'
 import type { QualityTier } from '@/hooks/useDevice'
 import { BOX, PLANE, mat } from '@/scenes/neighbourhood/shared3d'
 import { PackMesh, disposePackMaterials } from './PackMesh'
 import { disposePackTextures } from './packTexture'
 import type { StoreTheme } from './themes'
-import { AisleSigns, Bay, GondolaFrame, WalkRoom } from './WalkRoom'
-import { Shoppers } from './People'
-import { SimpleShoppers } from './WalkLife'
+import { AisleSigns, Bay, WalkRoom } from './WalkRoom'
 import { WalkRig } from './WalkRig'
 import { planStore, type WalkPlan } from './walkLayout'
 import { walkCmd } from './walkBus'
@@ -40,6 +39,26 @@ function HeadLamp({ intensity }: { intensity: number }) {
   return <pointLight ref={ref} color="#fff4e2" intensity={intensity} distance={26} decay={1.6} />
 }
 
+/** A soft studio-like environment so glossy packs, glass and the floor pick up believable reflections (built locally). */
+function Reflections({ intensity }: { intensity: number }) {
+  const gl = useThree((t) => t.gl)
+  const scene = useThree((t) => t.scene)
+  useEffect(() => {
+    const pmrem = new PMREMGenerator(gl)
+    const env = new RoomEnvironment()
+    const rt = pmrem.fromScene(env, 0.04)
+    scene.environment = rt.texture
+    scene.environmentIntensity = intensity
+    return () => {
+      scene.environment = null
+      rt.dispose()
+      pmrem.dispose()
+      env.dispose()
+    }
+  }, [gl, scene, intensity])
+  return null
+}
+
 function Outside({ plan, theme }: { plan: WalkPlan; theme: StoreTheme }) {
   return (
     <group>
@@ -52,6 +71,15 @@ function Outside({ plan, theme }: { plan: WalkPlan; theme: StoreTheme }) {
 
 function Scene({ plan, theme, storeName, selectedId, hoveredId, reducedMotion, tier, onHover, onSelect, onNearDept }: Props) {
   const low = tier === 'low'
+  // Shelves are stocked bay by bay, nearest the door first: painting every pack at once would freeze the page.
+  const order = useMemo(() => [...plan.faces].sort((a, b) => Math.hypot(a.x, plan.depth - a.z) - Math.hypot(b.x, plan.depth - b.z)).map((f) => f.index), [plan])
+  const [count, setCount] = useState(2)
+  useEffect(() => {
+    setCount(2)
+    const id = window.setInterval(() => setCount((c) => (c >= order.length ? c : c + 1)), 450)
+    return () => window.clearInterval(id)
+  }, [order])
+  const stocked = useMemo(() => new Set(order.slice(0, count)), [order, count])
   const floorClick = (e: ThreeEvent<MouseEvent>) => {
     if (e.delta > 6) return
     e.stopPropagation()
@@ -63,6 +91,7 @@ function Scene({ plan, theme, storeName, selectedId, hoveredId, reducedMotion, t
       <hemisphereLight args={['#ffffff', theme.floor, theme.hemiI * 1.15]} />
       <directionalLight color={theme.light} intensity={theme.lightI * 0.7} position={[6, 12, 20]} />
       <HeadLamp intensity={low ? 14 : 26} />
+      <Reflections intensity={low ? 0.2 : 0.3} />
       <WalkRoom plan={plan} theme={theme} storeName={storeName} reducedMotion={reducedMotion} />
       {/* invisible, slightly raised floor catches the walk-here clicks */}
       <mesh geometry={PLANE} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, plan.depth / 2]} scale={[plan.width, plan.depth, 1]} onClick={floorClick}>
@@ -70,31 +99,28 @@ function Scene({ plan, theme, storeName, selectedId, hoveredId, reducedMotion, t
       </mesh>
       <Outside plan={plan} theme={theme} />
       <AisleSigns plan={plan} theme={theme} />
-      {plan.gondolas.map((g, i) => (
-        <GondolaFrame key={i} x={g.x} z={g.z} length={g.length} theme={theme} />
-      ))}
       {plan.faces.map((face) => (
         <group key={face.index} position={[face.x, 0, face.z]} rotation={[0, face.rotY, 0]}>
           <Bay face={face} theme={theme} />
-          {face.slots.map((s, i) => (
-            <PackMesh
-              key={`${face.index}-${i}`}
-              product={s.product}
-              x={s.x}
-              y={s.y}
-              width={s.w}
-              index={face.index * 9 + i}
-              hovered={hoveredId === s.product.id}
-              selected={selectedId === s.product.id}
-              reducedMotion={reducedMotion}
-              lowDetail={low}
-              onHover={onHover}
-              onSelect={onSelect}
-            />
-          ))}
+          {stocked.has(face.index) &&
+            face.slots.map((s, i) => (
+              <PackMesh
+                key={`${face.index}-${i}`}
+                product={s.product}
+                x={s.x}
+                y={s.y}
+                width={s.w}
+                index={i}
+                hovered={hoveredId === s.product.id}
+                selected={selectedId === s.product.id}
+                reducedMotion={reducedMotion}
+                lowDetail={low}
+                onHover={onHover}
+                onSelect={onSelect}
+              />
+            ))}
         </group>
       ))}
-      {low ? <SimpleShoppers plan={plan} reducedMotion={reducedMotion} count={3} /> : <Shoppers plan={plan} reducedMotion={reducedMotion} count={Math.min(6, 3 + plan.lanesZ.length * 2)} />}
       <WalkRig plan={plan} selectedId={selectedId} reducedMotion={reducedMotion} onNearDept={onNearDept} />
     </>
   )

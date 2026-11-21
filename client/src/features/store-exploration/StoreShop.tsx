@@ -98,7 +98,8 @@ export function StoreShop({ store, catalog, source }: Props) {
     // A real shop repeats its lines across several runs; a small catalogue is spread over a believable floor.
     return padProducts(sorted, store.category === 'supermarket' ? 3 : sorted.length < 24 ? 2 : 1)
   }, [catalog.products, depts, store.category])
-  const plan = useMemo(() => planStore(walkProducts), [walkProducts])
+  const sellsProduce = store.category === 'supermarket' || store.category === 'fruit_veg'
+  const plan = useMemo(() => planStore(walkProducts, { produce: sellsProduce }), [walkProducts, sellsProduce])
   const [nearDept, setNearDept] = useState<string | null>(null)
 
   // Esc closes the details panel.

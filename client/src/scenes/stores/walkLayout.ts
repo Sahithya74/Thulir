@@ -112,7 +112,7 @@ export function padProducts(products: ProductView[], copies: number): ProductVie
   return out
 }
 
-export function planStore(products: ProductView[]): WalkPlan {
+export function planStore(products: ProductView[], opts: { produce?: boolean } = {}): WalkPlan {
   // Whole departments share a shelf face where they fit, so a sign over an aisle is honest about what is under it.
   const byDept = new Map<Department, ProductView[]>()
   for (const p of products) byDept.set(p.department as Department, [...(byDept.get(p.department as Department) ?? []), p])
@@ -211,7 +211,7 @@ export function planStore(products: ProductView[]): WalkPlan {
   lanesZ.push(frontShelf + AISLE / 2)
 
   // checkout zone and entrance
-  const roomy = products.length >= 10
+  const roomy = !!opts.produce && products.length >= 10
   const depth = Math.max(frontShelf + AISLE + (roomy ? 12.5 : 7.5), 16.5)
   // open produce tables between the aisles and the tills, where a real shop puts its freshest stock
   const fixtures: Fixture[] = roomy ? [-1, 1].map((s2) => ({ kind: 'produce' as const, x: s2 * width * 0.22, z: frontShelf + AISLE + 2.4, w: 6.2, d: 2.8 })) : []

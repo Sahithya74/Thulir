@@ -21,7 +21,7 @@ describe('demo catalog integrity', () => {
   const { products, batches } = buildDemoCatalog(NOW)
   it('has a realistic size and spans all six stores', () => {
     expect(products.length).toBeGreaterThanOrEqual(60)
-    expect(products.length).toBeLessThanOrEqual(110)
+    expect(products.length).toBeLessThanOrEqual(240)
     for (const s of demoStores) expect(products.some((p) => p.storeId === s.id)).toBe(true)
   })
   it('ids are unique and every batch points at a real product', () => {

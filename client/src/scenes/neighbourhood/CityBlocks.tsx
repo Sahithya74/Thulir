@@ -21,7 +21,7 @@ interface Block {
   tint: string
 }
 
-const TINTS = ['#e9e5d9', '#d9d1bd', '#cfc8b4', '#e0d9c8', '#c9bba2', '#b9b8aa']
+const TINTS = ['#f2f6fb', '#e4ecf6', '#d6e2ee', '#f7eee6', '#e6dff0', '#d9ece6']
 const FLOOR_H = 3.2
 
 function buildBlocks(count: number): Block[] {

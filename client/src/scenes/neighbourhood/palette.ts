@@ -2,16 +2,16 @@ import { CanvasTexture, RepeatWrapping, SRGBColorSpace } from 'three'
 
 /** Scene colours — the brand palette, nudged slightly for lit materials. */
 export const C = {
-  forest: '#202522',
-  limestone: '#e9e5d9',
-  botanical: '#a8b89a',
-  terracotta: '#c98255',
-  olive: '#77856b',
-  cream: '#f5f2ea',
-  charcoal: '#292c29',
-  asphalt: '#3b3e3a',
-  paving: '#d8d2c1',
-  ground: '#cfcab9',
+  forest: '#0f2a43',
+  limestone: '#e3edf6',
+  botanical: '#7fd3c1',
+  terracotta: '#ee5a36',
+  olive: '#0b8079',
+  cream: '#f4f8fc',
+  charcoal: '#1b2b3c',
+  asphalt: '#37414f',
+  paving: '#e4ecef',
+  ground: '#d3e6e1',
   glass: '#2c3a38',
 }
 
@@ -58,5 +58,59 @@ export function makePavingTexture(): CanvasTexture {
   t.wrapS = t.wrapT = RepeatWrapping
   t.colorSpace = SRGBColorSpace
   t.anisotropy = 4
+  return t
+}
+
+/** Shop colour by category: the same hue on the awning, fascia, beacon and (inside) the signage. */
+export const CAT_COLOR = {
+  supermarket: '#0b8079',
+  provision: '#ee5a36',
+  fruit_veg: '#2f9e5b',
+  bakery: '#e0457b',
+  dairy: '#2f9fd6',
+  household: '#5b6cff',
+} as const
+
+/** Illuminated shop name board (English over Tamil). */
+export function makeNameBoard(en: string, ta: string, bg: string, fg = '#ffffff'): CanvasTexture {
+  const w = 1024
+  const h = 256
+  const c = document.createElement('canvas')
+  c.width = w
+  c.height = h
+  const g = c.getContext('2d')!
+  const grad = g.createLinearGradient(0, 0, 0, h)
+  grad.addColorStop(0, bg)
+  grad.addColorStop(1, bg)
+  g.fillStyle = grad
+  g.fillRect(0, 0, w, h)
+  g.fillStyle = 'rgba(255,255,255,0.14)'
+  g.fillRect(0, 0, w, h * 0.46)
+  g.strokeStyle = fg
+  g.globalAlpha = 0.55
+  g.lineWidth = 6
+  g.strokeRect(10, 10, w - 20, h - 20)
+  g.globalAlpha = 1
+  g.fillStyle = fg
+  g.textAlign = 'center'
+  g.textBaseline = 'middle'
+  let size = 112
+  const face = '"Inter Variable", Inter, system-ui, sans-serif'
+  g.font = `800 ${size}px ${face}`
+  while (size > 40 && g.measureText(en).width > w - 90) {
+    size -= 4
+    g.font = `800 ${size}px ${face}`
+  }
+  g.fillText(en, w / 2, h * 0.4)
+  let ts = 62
+  g.font = `600 ${ts}px "Noto Sans Tamil", sans-serif`
+  while (ts > 26 && g.measureText(ta).width > w - 90) {
+    ts -= 3
+    g.font = `600 ${ts}px "Noto Sans Tamil", sans-serif`
+  }
+  g.fillText(ta, w / 2, h * 0.76)
+  const t = new CanvasTexture(c)
+  t.colorSpace = SRGBColorSpace
+  t.anisotropy = 8
   return t
 }

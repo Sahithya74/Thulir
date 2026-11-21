@@ -8,9 +8,9 @@ export type LightMode = 'golden' | 'day'
 
 const MODES = {
   // Opening shot: low, warm sun.
-  golden: { sun: '#ffd2a0', sunI: 2.6, pos: [34, 18, 20], sky: '#f2e3c9', hemiI: 0.75, bg: '#e6dcc6' },
+  golden: { sun: '#ffd9ae', sunI: 2.6, pos: [34, 18, 20], sky: '#ffe9d2', hemiI: 0.8, bg: '#f6dcc2' },
   // Settled daylight: higher, neutral sun.
-  day: { sun: '#fff1da', sunI: 2.3, pos: [22, 36, 16], sky: '#f5f2ea', hemiI: 0.95, bg: '#dfdccd' },
+  day: { sun: '#fff4df', sunI: 2.3, pos: [22, 36, 16], sky: '#e2f2ff', hemiI: 1.0, bg: '#bfe3f8' },
 } as const
 
 interface Props {
@@ -60,7 +60,7 @@ export function Lighting({ mode, shadows, low }: Props) {
 
   return (
     <>
-      <hemisphereLight ref={hemi} args={['#f2e3c9', '#77856b', MODES.golden.hemiI]} />
+      <hemisphereLight ref={hemi} args={['#ffe9d2', '#9fc9b8', MODES.golden.hemiI]} />
       <directionalLight
         ref={sun}
         castShadow={shadows}

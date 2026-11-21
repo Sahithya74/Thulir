@@ -8,7 +8,7 @@ const LANES = [
   { z: -2.3, dir: 1 },
   { z: 2.3, dir: -1 },
 ]
-const COLORS = ['#e9e5d9', '#77856b', '#c98255', '#292c29', '#a8b89a', '#f5f2ea']
+const COLORS = ['#ffc233', '#ee5a36', '#0b8079', '#3b6fd4', '#ffffff', '#e0457b', '#2f9e5b']
 const LOOP = 110
 
 interface Veh {

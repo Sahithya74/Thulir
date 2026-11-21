@@ -12,6 +12,7 @@ import { Lighting, type LightMode } from './Lighting'
 import { PinProjector } from './PinProjector'
 import { StoreBuilding } from './StoreBuilding'
 import { Vehicles } from './Ambient'
+import { Birds, Clouds, Pedestrians } from './Life'
 import { plots } from './layout'
 
 interface Props {
@@ -38,14 +39,17 @@ function Scene({ visibleIds, reducedMotion, tier }: Props) {
 
   return (
     <>
-      <color attach="background" args={['#e6dcc6']} />
-      <fog attach="fog" args={['#e6dcc6', 130, 330]} />
+      <color attach="background" args={['#f6dcc2']} />
+      <fog attach="fog" args={['#f6dcc2', 150, 380]} />
       <Lighting mode={mode} shadows={shadows} low={low} />
       <CameraRig reducedMotion={reducedMotion} parallax={!low} />
       <PinProjector />
       <District shadows={shadows} />
       <CityBlocks low={low} shadows={shadows} />
-      <Vehicles count={low ? 4 : 9} reducedMotion={reducedMotion} />
+      <Vehicles count={low ? 5 : 12} reducedMotion={reducedMotion} />
+      <Pedestrians count={low ? 14 : 34} reducedMotion={reducedMotion} />
+      <Clouds reducedMotion={reducedMotion} />
+      {!low && <Birds count={7} reducedMotion={reducedMotion} />}
       {plots.map((plot) => {
         const store = stores.find((s) => s.id === plot.storeId)
         if (!store) return null

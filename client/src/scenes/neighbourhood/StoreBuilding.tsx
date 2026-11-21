@@ -2,7 +2,8 @@ import { memo, useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { MathUtils, MeshStandardMaterial, type Group, type Texture } from 'three'
 import type { Store } from '@thulir/shared'
-import { C, makeFacadeTexture } from './palette'
+import { C, CAT_COLOR, makeFacadeTexture, makeNameBoard } from './palette'
+import { useLang } from '@/services/i18n'
 import { BOX, CYL, PLANE, glassMat, mat } from './shared3d'
 import type { Plot } from './layout'
 
@@ -27,12 +28,12 @@ interface Theme {
 }
 
 const THEMES: Record<Plot['category'], Theme> = {
-  supermarket: { wall: '#e9e5d9', band: '#202522', awningA: '#77856b', awningB: '#e9e5d9', glassGlow: 0.5 },
-  provision: { wall: '#c98255', band: '#292c29', awningA: '#77856b', awningB: '#f5f2ea', glassGlow: 0.35 },
-  fruit_veg: { wall: '#a8b89a', band: '#77856b', awningA: '#c98255', awningB: '#f5f2ea', glassGlow: 0.2 },
-  bakery: { wall: '#f5f2ea', band: '#c98255', awningA: '#c98255', awningB: '#f5f2ea', glassGlow: 0.65 },
-  dairy: { wall: '#f1eee4', band: '#77856b', awningA: '#a8b89a', awningB: '#f5f2ea', glassGlow: 0.4 },
-  household: { wall: '#4a504b', band: '#e9e5d9', awningA: '#292c29', awningB: '#a8b89a', glassGlow: 0.4 },
+  supermarket: { wall: '#f4f9fd', band: CAT_COLOR.supermarket, awningA: CAT_COLOR.supermarket, awningB: '#ffffff', glassGlow: 0.6 },
+  provision: { wall: '#ffe3ba', band: CAT_COLOR.provision, awningA: CAT_COLOR.provision, awningB: '#fff4e0', glassGlow: 0.5 },
+  fruit_veg: { wall: '#e1f4d3', band: CAT_COLOR.fruit_veg, awningA: CAT_COLOR.fruit_veg, awningB: '#ffffff', glassGlow: 0.3 },
+  bakery: { wall: '#ffe9ef', band: CAT_COLOR.bakery, awningA: CAT_COLOR.bakery, awningB: '#ffffff', glassGlow: 0.75 },
+  dairy: { wall: '#e7f5ff', band: CAT_COLOR.dairy, awningA: CAT_COLOR.dairy, awningB: '#ffffff', glassGlow: 0.55 },
+  household: { wall: '#eaedff', band: CAT_COLOR.household, awningA: CAT_COLOR.household, awningB: '#ffffff', glassGlow: 0.5 },
 }
 
 const GF = 3.4 // ground-floor height
@@ -110,14 +111,11 @@ function Supermarket({ plot, theme, reducedMotion }: { plot: Plot; theme: Theme;
       {/* forecourt + bay markings */}
       <mesh geometry={PLANE} material={mat('#bdb8a8')} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, d / 2 + 3.6]} scale={[w + 3, 7.2, 1]} receiveShadow />
       {Array.from({ length: 9 }, (_, i) => (
-        <mesh key={i} geometry={PLANE} material={mat('#f5f2ea')} rotation={[-Math.PI / 2, 0, 0]} position={[-w / 2 + 1.5 + i * 1.7, 0.04, d / 2 + 5.2]} scale={[0.06, 3, 1]} />
+        <mesh key={i} geometry={PLANE} material={mat('#f4f8fc')} rotation={[-Math.PI / 2, 0, 0]} position={[-w / 2 + 1.5 + i * 1.7, 0.04, d / 2 + 5.2]} scale={[0.06, 3, 1]} />
       ))}
       <Car x={-w / 2 + 2.3} z={d / 2 + 5.2} color="#d9d4c4" rot={Math.PI / 2} />
-      <Car x={-w / 2 + 4.0} z={d / 2 + 5.2} color="#77856b" rot={Math.PI / 2} />
-      <Car x={w / 2 - 2.2} z={d / 2 + 5.2} color="#c98255" rot={Math.PI / 2} />
-      {/* tall rooftop name board */}
-      <mesh geometry={BOX} material={mat(C.forest)} position={[0, plot.h + 1.5, d / 2 - 0.8]} scale={[w * 0.55, 2, 0.3]} castShadow />
-      <mesh geometry={BOX} material={mat(theme.awningA)} position={[0, plot.h + 0.75, d / 2 - 0.8]} scale={[w * 0.55 + 0.2, 0.2, 0.34]} />
+      <Car x={-w / 2 + 4.0} z={d / 2 + 5.2} color="#0b8079" rot={Math.PI / 2} />
+      <Car x={w / 2 - 2.2} z={d / 2 + 5.2} color="#ee5a36" rot={Math.PI / 2} />
       <Awning w={w - 6} z={d / 2 + 0.05} theme={theme} reducedMotion={reducedMotion} />
     </>
   )
@@ -151,7 +149,7 @@ function FruitHall({ plot, theme }: { plot: Plot; theme: Theme }) {
         <mesh key={i} geometry={CYL} material={mat('#8f938b')} position={[-w / 2 + 0.5 + (i * (w - 1)) / (cols - 1), GF / 2, d / 2 - 0.2]} scale={[0.14, GF, 0.14]} castShadow />
       ))}
       <mesh geometry={BOX} material={mat(theme.band)} position={[0, GF + 0.15, d / 2 + 0.6]} scale={[w + 0.6, 0.3, d * 0.2 + 1.8]} castShadow />
-      <mesh geometry={BOX} material={mat('#f5f2ea')} position={[0, GF + 0.7, d / 2 + 1.5]} scale={[w - 1, 0.9, 0.14]} />
+      <mesh geometry={BOX} material={mat('#f4f8fc')} position={[0, GF + 0.7, d / 2 + 1.5]} scale={[w - 1, 0.9, 0.14]} />
       {Array.from({ length: 14 }, (_, i) => {
         const row = i % 7
         const level = Math.floor(i / 7)
@@ -176,7 +174,7 @@ function Bakery({ plot, theme, reducedMotion }: { plot: Plot; theme: Theme; redu
       {/* two café tables on the pavement */}
       {[-1.4, 0.9].map((o) => (
         <group key={o} position={[o - w * 0.1, 0, d / 2 + 1.6]}>
-          <mesh geometry={CYL} material={mat('#f5f2ea')} position={[0, 0.8, 0]} scale={[0.5, 0.06, 0.5]} castShadow />
+          <mesh geometry={CYL} material={mat('#f4f8fc')} position={[0, 0.8, 0]} scale={[0.5, 0.06, 0.5]} castShadow />
           <mesh geometry={CYL} material={mat(C.charcoal)} position={[0, 0.4, 0]} scale={[0.06, 0.8, 0.06]} />
         </group>
       ))}
@@ -205,8 +203,69 @@ function Household({ plot, theme, reducedMotion }: { plot: Plot; theme: Theme; r
       <Awning w={w} z={d / 2 + 0.05} theme={theme} reducedMotion={reducedMotion} />
       {/* display racks seen through the glass */}
       {[-2.4, 0, 2.4].map((o) => (
-        <mesh key={o} geometry={BOX} material={mat('#e9e5d9', { emissive: '#ffe3b0', emissiveIntensity: 0.2 })} position={[o, 1.5, d / 2 - 0.1]} scale={[1.6, 1.8, 0.1]} />
+        <mesh key={o} geometry={BOX} material={mat('#e3edf6', { emissive: '#ffe3b0', emissiveIntensity: 0.2 })} position={[o, 1.5, d / 2 - 0.1]} scale={[1.6, 1.8, 0.1]} />
       ))}
+    </>
+  )
+}
+
+/** Illuminated name boards (fascia + rooftop) and a beacon, so every shop can be spotted and read from afar. */
+function Signage({ plot, store, reducedMotion }: { plot: Plot; store: Store; reducedMotion: boolean }) {
+  const lang = useLang()
+  const color = CAT_COLOR[plot.category]
+  const tex = useMemo(() => makeNameBoard(store.name.en, store.name.ta, color), [store.name.en, store.name.ta, color])
+  const boardMat = useMemo(() => new MeshStandardMaterial({ map: tex, emissive: '#ffffff', emissiveMap: tex, emissiveIntensity: 0.55, roughness: 0.5 }), [tex])
+  const beacon = useRef<Group>(null)
+  const beam = useRef<MeshStandardMaterial>(null)
+  const glowAnim = useRef(boardMat)
+  useEffect(
+    () => () => {
+      tex.dispose()
+      boardMat.dispose()
+    },
+    [tex, boardMat],
+  )
+  const open = plot.category === 'fruit_veg'
+  const { w, d, h } = plot
+  const fasciaY = open ? GF + 0.7 : GF + 0.75
+  const fasciaZ = open ? d / 2 + 1.58 : d / 2 + 0.24
+  const fasciaW = open ? w - 1.3 : w - 0.8
+  const roofW = Math.min(w * 0.82, 11)
+  const roofZ = open ? -d / 2 + 0.75 : d / 2 - 0.35
+  void lang
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime
+    if (!reducedMotion) {
+      glowAnim.current.emissiveIntensity = 0.5 + Math.sin(t * 1.6 + plot.x) * 0.12
+      if (beacon.current) {
+        beacon.current.position.y = h + 4.6 + Math.sin(t * 1.4 + plot.x) * 0.45
+        beacon.current.rotation.y = t * 0.9
+      }
+      if (beam.current) beam.current.opacity = 0.16 + Math.sin(t * 1.1 + plot.z) * 0.05
+    }
+  })
+  return (
+    <>
+      <mesh geometry={PLANE} material={boardMat} position={[0, fasciaY, fasciaZ]} scale={[fasciaW, 0.82, 1]} />
+      {/* rooftop board, tilted a touch towards the avenue */}
+      <group position={[0, h + 1.15, roofZ]} rotation={[-0.08, 0, 0]}>
+        <mesh geometry={PLANE} material={boardMat} position={[0, 0, 0.12]} scale={[roofW, roofW / 4, 1]} />
+        <mesh geometry={BOX} material={mat('#10243a')} position={[0, 0, 0]} scale={[roofW + 0.3, roofW / 4 + 0.3, 0.18]} />
+        {[-1, 1].map((s2) => (
+          <mesh key={s2} geometry={BOX} material={mat('#10243a')} position={[s2 * (roofW / 2 - 0.4), -roofW / 8 - 0.5, -0.05]} scale={[0.14, 1.0, 0.14]} />
+        ))}
+      </group>
+      {/* beacon: a bobbing gem over a soft beam of light */}
+      <group ref={beacon} position={[0, h + 4.6, open ? -d / 2 + 1 : 0]}>
+        <mesh scale={[0.9, 1.3, 0.9]}>
+          <octahedronGeometry args={[1, 0]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.1} roughness={0.25} />
+        </mesh>
+      </group>
+      <mesh position={[0, h + 9, open ? -d / 2 + 1 : 0]} raycast={() => null}>
+        <cylinderGeometry args={[0.55, 1.5, 11, 16, 1, true]} />
+        <meshStandardMaterial ref={beam} color={color} emissive={color} emissiveIntensity={0.9} transparent opacity={0.16} depthWrite={false} side={2} />
+      </mesh>
     </>
   )
 }
@@ -296,7 +355,7 @@ export const StoreBuilding = memo(function StoreBuilding({
     <group position={[plot.x, 0, plot.z]} rotation={[0, plot.faces === 'north' ? Math.PI : 0, 0]}>
       {/* plot highlight ring: sits on the ground, fades in on hover/select */}
       <mesh geometry={PLANE} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.045, 0]} scale={[plot.w + 1.4, plot.d + 1.4, 1]}>
-        <meshStandardMaterial ref={ring} color={C.terracotta} transparent opacity={0} depthWrite={false} />
+        <meshStandardMaterial ref={ring} color={CAT_COLOR[plot.category]} transparent opacity={0} depthWrite={false} />
       </mesh>
 
       <group
@@ -323,6 +382,7 @@ export const StoreBuilding = memo(function StoreBuilding({
         {plot.category === 'dairy' && <Dairy plot={plot} theme={theme} reducedMotion={reducedMotion} />}
         {plot.category === 'household' && <Household plot={plot} theme={theme} reducedMotion={reducedMotion} />}
         {!open && <RoofKit w={plot.w} d={plot.d} h={plot.h} seed={plot.x} />}
+        <Signage plot={plot} store={store} reducedMotion={reducedMotion} />
       </group>
 
     </group>

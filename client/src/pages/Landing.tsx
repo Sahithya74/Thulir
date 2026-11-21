@@ -1,25 +1,41 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import gsap from 'gsap'
 import { LanguageSwitch } from '@/components/navigation/TopBar'
-import { useT } from '@/services/i18n'
-import { dur, ease } from '@/services/motion'
+import { ProductArt } from '@/components/products/ProductArt'
+import type { PackSource } from '@/components/products/packDesign'
+import { categoryKey, useT } from '@/services/i18n'
+import { dur, ease, gsap, parallax, revealOnScroll } from '@/services/motion'
 import { useUiStore } from '@/store/ui'
 import { useWebGLSupport } from '@/hooks/useDevice'
 
-/** Architectural line-drawing of a town-centre skyline; strokes are "drawn in" by GSAP. */
-function Skyline() {
+const L = (en: string, ta: string) => ({ en, ta })
+
+/** Illustrative packs for the hero. These are drawn by the same painter the shops use, not photographs. */
+const HERO_PACKS: { p: PackSource; size: number; cls: string; depth: number; rot: number }[] = [
+  { p: { id: 'h-salt', name: L('Crystal Salt', 'உப்பு'), brand: 'Thulir Pantry', unit: '1 kg', department: 'pantry', shape: 'pouch', color: '#e8eef5', veg: true }, size: 190, cls: 'left-[0%] top-[34%]', depth: 30, rot: -9 },
+  { p: { id: 'h-rice', name: L('Ponni Rice', 'பொன்னி அரிசி'), brand: 'Kaveri', unit: '5 kg', department: 'pantry', shape: 'pouch', color: '#f3d9a0', veg: true }, size: 290, cls: 'left-[20%] top-[0%]', depth: 55, rot: 5 },
+  { p: { id: 'h-tea', name: L('Assam Tea', 'தேநீர்'), brand: 'Chai Co', unit: '250 g', department: 'beverages', shape: 'box', color: '#b7332b', veg: true }, size: 230, cls: 'right-[6%] top-[4%]', depth: 40, rot: -4 },
+  { p: { id: 'h-milk', name: L('Fresh Milk', 'பால்'), brand: 'Pasumai', unit: '1 L', department: 'chilled', shape: 'carton', color: '#3b8fd6', veg: true }, size: 240, cls: 'right-[0%] top-[40%]', depth: 65, rot: 8 },
+  { p: { id: 'h-oil', name: L('Groundnut Oil', 'கடலை எண்ணெய்'), brand: 'Selvam', unit: '1 L', department: 'pantry', shape: 'bottle', color: '#e6a817', veg: true }, size: 210, cls: 'left-[6%] bottom-[0%]', depth: 25, rot: 6 },
+  { p: { id: 'h-bisc', name: L('Butter Biscuits', 'பிஸ்கட்'), brand: 'Madhuram', unit: '200 g', department: 'snacks', shape: 'box', color: '#d9742a', veg: true }, size: 200, cls: 'left-[42%] bottom-[2%]', depth: 50, rot: -7 },
+]
+
+const CATS = ['supermarket', 'provision', 'fruit_veg', 'bakery', 'dairy', 'household'] as const
+const STEP_COLORS = ['bg-sun text-forest', 'bg-terracotta text-cream', 'bg-botanical text-forest', 'bg-forest text-cream']
+
+function Marquee({ items, reverse }: { items: string[]; reverse?: boolean }) {
+  const row = [...items, ...items]
   return (
-    <svg viewBox="0 0 800 200" className="w-full max-w-[760px]" fill="none" stroke="#a9cf8a" strokeWidth="1.2" aria-hidden>
-      <path className="draw" pathLength="1" strokeDasharray="1" d="M0 190H800" />
-      <path className="draw" pathLength="1" strokeDasharray="1" d="M30 190V120H100V190M30 120L65 100L100 120M45 150H85M45 170H85" />
-      <path className="draw" pathLength="1" strokeDasharray="1" d="M130 190V70H230V190M130 70H230M150 95H210M150 120H210M150 145H210M150 170H210M180 70V50H196V70" />
-      <path className="draw" pathLength="1" strokeDasharray="1" d="M260 190V140H340V190M260 140H340M280 140V120H350V140M275 165H325" />
-      <path className="draw" pathLength="1" strokeDasharray="1" d="M370 190V40H470V190M370 40H470M390 70H450M390 100H450M390 130H450M390 160H450M420 40V20" />
-      <path className="draw" pathLength="1" strokeDasharray="1" d="M500 190V130H610V190M495 130H615M520 150H590M520 170H590" stroke="#d94f2b" />
-      <path className="draw" pathLength="1" strokeDasharray="1" d="M640 190V95H720V190M640 95H720M655 120H705M655 145H705M655 170H705" />
-      <path className="draw" pathLength="1" strokeDasharray="1" d="M745 190V150H790V190" />
-    </svg>
+    <div className="overflow-hidden" aria-hidden>
+      <div className={`flex w-max gap-10 ${reverse ? 'marquee-rev' : 'marquee'}`}>
+        {row.map((x, i) => (
+          <span key={i} className="flex items-center gap-10 font-display text-[clamp(2rem,6vw,4.5rem)] leading-none">
+            {x}
+            <span className="inline-block h-3 w-3 rotate-45 bg-terracotta" />
+          </span>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -29,96 +45,181 @@ export default function Landing() {
   const setEntered = useUiStore((s) => s.setEntered)
   const webgl = useWebGLSupport()
   const root = useRef<HTMLDivElement>(null)
-  const barRef = useRef<HTMLDivElement>(null)
-  const [ready, setReady] = useState(false)
-  const [pct, setPct] = useState(0)
-
-  // Real loading steps: fonts decoded, and (when WebGL exists) the 3D chunk fetched.
+  const hero = useRef<HTMLElement>(null)
+  
+  // Warm the fonts (and the 3D district, when available) while people read; never block them.
   useEffect(() => {
-    let alive = true
-    const steps = webgl ? 2 : 1
-    let done = 0
-    const bump = () => {
-      done++
-      if (alive) setPct(Math.round((done / steps) * 100))
-    }
-    const fonts = (document.fonts?.ready ?? Promise.resolve()).then(bump)
-    const scene = webgl ? import('@/scenes/neighbourhood/NeighbourhoodCanvas').then(bump, bump) : Promise.resolve()
-    // Minimum beat so the intro reads as designed rather than flashing past.
-    const minimum = new Promise((r) => setTimeout(r, dur(1600) === 0 ? 0 : 1600))
-    Promise.all([fonts, scene, minimum]).then(() => alive && setReady(true))
-    return () => {
-      alive = false
-    }
+    const fonts = (document.fonts?.ready ?? Promise.resolve()) as Promise<unknown>
+    const scene = webgl ? import('@/scenes/neighbourhood/NeighbourhoodCanvas').catch(() => undefined) : Promise.resolve()
+    void Promise.all([fonts, scene])
   }, [webgl])
 
-  // Entrance timeline.
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: ease.enter } })
-      tl.from('.draw', { strokeDashoffset: 1, duration: dur(1.8), stagger: 0.12 }, 0)
-      tl.from('.reveal', { y: dur(26), opacity: 0, duration: dur(1.1), stagger: 0.14 }, 0.3)
+      tl.from('.hero-word', { yPercent: dur(110), duration: dur(1.2), stagger: 0.09 }, 0.1)
+      tl.from('.hero-fade', { y: dur(24), opacity: 0, duration: dur(1), stagger: 0.12 }, 0.5)
+      tl.from('.hero-pack', { y: dur(120), scale: 0.6, opacity: 0, duration: dur(1.4), stagger: 0.1, ease: ease.spring }, 0.3)
+      // Packs float gently forever, each on its own rhythm.
+      gsap.utils.toArray<HTMLElement>('.hero-float').forEach((el, i) => {
+        gsap.to(el, { y: dur(-16 - (i % 3) * 6), duration: 2.6 + i * 0.35, repeat: -1, yoyo: true, ease: 'sine.inOut' })
+      })
+      gsap.to('.blob', { x: dur(40), y: dur(-30), scale: 1.12, duration: 7, repeat: -1, yoyo: true, ease: 'sine.inOut', stagger: 1.4 })
+      revealOnScroll(root.current)
+      parallax(root.current)
     }, root)
     return () => ctx.revert()
   }, [])
 
-  // Progress line follows the real percentage.
-  useEffect(() => {
-    if (barRef.current) gsap.to(barRef.current, { scaleX: pct / 100, duration: dur(0.5), ease: ease.studio })
-  }, [pct])
+  // Pointer parallax: each pack shifts by its own depth.
+  const onMove = (e: React.PointerEvent) => {
+    const el = hero.current
+    if (!el || dur(1) === 0) return
+    const r = el.getBoundingClientRect()
+    const nx = (e.clientX - r.left) / r.width - 0.5
+    const ny = (e.clientY - r.top) / r.height - 0.5
+    gsap.utils.toArray<HTMLElement>('.hero-pack').forEach((p) => {
+      const d = Number(p.dataset.depth ?? 30)
+      gsap.to(p, { x: nx * d * -1.4, y: ny * d * -1.4, duration: 0.9, ease: ease.studio, overwrite: 'auto' })
+    })
+  }
 
   const enter = () => {
     setEntered(true)
     const go = () => nav('/discover')
     if (dur(1) === 0) return go()
-    gsap.to(root.current, { opacity: 0, duration: 0.45, ease: 'power2.in', onComplete: go })
+    gsap.to(root.current, { opacity: 0, duration: 0.4, ease: 'power2.in', onComplete: go })
   }
 
+  const steps = [
+    { t: t('step1T'), b: t('step1B'), span: 'md:col-span-3 md:row-span-2', n: '01' },
+    { t: t('step2T'), b: t('step2B'), span: 'md:col-span-3', n: '02' },
+    { t: t('step3T'), b: t('step3B'), span: 'md:col-span-3', n: '03' },
+    { t: t('step4T'), b: t('step4B'), span: 'md:col-span-6', n: '04' },
+  ]
+  const cats = CATS.map((c) => t(categoryKey[c]))
+
   return (
-    <div ref={root} className="relative flex min-h-dvh flex-col bg-forest text-cream">
-      <div className="flex items-center justify-between px-5 py-4 sm:px-8">
-        <span className="eyebrow !text-botanical reveal">{t('demoPrototype')}</span>
-        <div className="reveal [&_button]:text-cream [&>div]:border-cream/30 [&_button[aria-pressed=true]]:bg-cream [&_button[aria-pressed=true]]:text-forest">
-          <LanguageSwitch />
+    <div ref={root} className="relative overflow-x-clip bg-cream text-forest">
+      {/* Hero */}
+      <header ref={hero} onPointerMove={onMove} className="relative min-h-dvh overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="blob absolute -left-24 top-10 h-[34rem] w-[34rem] rounded-full bg-[radial-gradient(closest-side,rgba(245,184,46,0.55),transparent)]" />
+          <div className="blob absolute right-[-8rem] top-1/3 h-[30rem] w-[30rem] rounded-full bg-[radial-gradient(closest-side,rgba(217,79,43,0.3),transparent)]" />
+          <div className="blob absolute bottom-[-10rem] left-1/3 h-[32rem] w-[32rem] rounded-full bg-[radial-gradient(closest-side,rgba(169,207,138,0.6),transparent)]" />
         </div>
-      </div>
 
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-5 pb-10 sm:px-8">
-        <div className="reveal mb-8 sm:mb-12">
-          <Skyline />
+        <div className="relative z-20 flex items-center justify-between px-5 py-5 sm:px-10">
+          <span className="font-display text-2xl tracking-wide">{t('brand')}</span>
+          <div className="flex items-center gap-4">
+            <span className="eyebrow hidden sm:inline">{t('demoPrototype')}</span>
+            <LanguageSwitch />
+          </div>
         </div>
-        <h1 className="reveal font-display text-[clamp(3.2rem,11vw,8rem)] leading-[0.92] tracking-[0.06em] [html[lang=ta]_&]:tracking-normal">{t('brand').toUpperCase()}</h1>
-        <p className="reveal mt-5 max-w-xl font-display text-[clamp(1.2rem,2.6vw,1.75rem)] leading-snug text-limestone">{t('tagline')}</p>
-        <p className="reveal mt-2 text-[0.9rem] text-botanical">{t('taglineAlt')}</p>
 
-        <div className="reveal mt-10 flex flex-wrap items-center gap-4">
-          <button
-            type="button"
-            onClick={enter}
-            disabled={!ready}
-            className="tap border border-cream bg-cream px-7 text-[0.95rem] font-medium text-forest transition-colors hover:bg-limestone disabled:cursor-wait disabled:border-cream/30 disabled:bg-transparent disabled:text-cream/50"
-          >
-            {ready ? t('enter') : `${t('loading')}…`}
-          </button>
-          {!ready && (
-            <button type="button" onClick={enter} className="tap px-2 text-[0.8rem] text-botanical underline underline-offset-4">
-              {t('skip')}
+        <div className="pointer-events-none absolute right-[3%] top-[14%] hidden h-[72%] w-[46%] lg:block" aria-hidden>
+          {HERO_PACKS.map(({ p, size, cls, depth, rot }) => (
+            <div key={p.id} className={`hero-pack absolute ${cls}`} data-depth={depth}>
+              <div className="hero-float" style={{ rotate: `${rot}deg` }}>
+                <ProductArt product={p} size={size} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="relative z-10 mx-auto flex min-h-[78dvh] max-w-6xl flex-col justify-end px-5 pb-16 pt-24 sm:px-10 lg:justify-center lg:pt-0">
+          <p className="hero-fade eyebrow mb-5 !text-terracotta">{t('heroKicker')}</p>
+          <h1 className="font-display text-[clamp(3rem,7.2vw,6.6rem)] leading-[0.98] tracking-tight">
+            <span className="block overflow-hidden">
+              <span className="hero-word block">{t('heroLine1')}</span>
+            </span>
+            <span className="block overflow-hidden">
+              <span className="hero-word block italic text-terracotta">{t('heroLine2')}</span>
+            </span>
+          </h1>
+          <p className="hero-fade mt-6 max-w-xl text-[1.05rem] leading-relaxed text-charcoal/80">{t('heroBody')}</p>
+          <div className="hero-fade mt-9 flex flex-wrap items-center gap-4">
+            <button
+              type="button"
+              onClick={enter}
+              className="tap group relative overflow-hidden rounded-full bg-forest px-8 py-3 text-[1rem] font-medium text-cream shadow-[0_18px_40px_-12px_rgba(43,26,18,0.55)] transition-transform hover:-translate-y-0.5 active:translate-y-0"
+            >
+              <span className="relative z-10">{t('chooseShop')}</span>
+              <span aria-hidden className="absolute inset-0 -translate-x-full bg-terracotta transition-transform duration-500 ease-out group-hover:translate-x-0" />
             </button>
-          )}
+            <a href="#how" className="tap flex items-center px-3 text-[0.95rem] underline decoration-terracotta/60 underline-offset-4 hover:decoration-terracotta">
+              {t('seeHow')}
+            </a>
+          </div>
         </div>
+      </header>
 
-        <p className="reveal mt-6 text-[0.85rem] text-botanical">
-          Run a store? <Link to="/owner/login" className="underline underline-offset-4 hover:text-cream">Sign in to your store</Link>
+      {/* Marquee */}
+      <section aria-hidden className="border-y border-forest/10 bg-sun py-6">
+        <div className="flex flex-col gap-4">
+          <Marquee items={cats} />
+          <div className="text-forest/70">
+            <Marquee items={cats.slice().reverse()} reverse />
+          </div>
+        </div>
+      </section>
+
+      {/* Bento: how it works */}
+      <section id="how" className="mx-auto max-w-6xl px-5 py-24 sm:px-10">
+        <h2 data-reveal className="font-display text-[clamp(2.2rem,5.5vw,4.5rem)] leading-[1.02]">
+          {t('stepsTitle')}
+        </h2>
+        <div className="mt-12 grid grid-cols-1 gap-4 md:auto-rows-[13rem] md:grid-cols-6">
+          {steps.map((s, i) => (
+            <article
+              key={s.n}
+              data-reveal={i % 2 ? 'right' : 'left'}
+              className={`${s.span} ${STEP_COLORS[i]} group relative flex flex-col justify-between overflow-hidden rounded-[2rem] p-7 transition-transform duration-500 hover:-translate-y-1.5 hover:rotate-[-0.6deg]`}
+            >
+              <span className="font-display text-6xl opacity-30 transition-opacity group-hover:opacity-60">{s.n}</span>
+              {i === 0 && (
+                <div aria-hidden className="pointer-events-none absolute inset-x-0 top-16 flex justify-center gap-2">
+                  {HERO_PACKS.slice(0, 3).map(({ p }, k) => (
+                    <div key={p.id} className="transition-transform duration-500 group-hover:-translate-y-3" style={{ transform: `rotate(${(k - 1) * 8}deg) translateY(${k === 1 ? 0 : 18}px)` }}>
+                      <ProductArt product={p} size={170} />
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div>
+                <h3 className="font-display text-[1.7rem] leading-tight">{s.t}</h3>
+                <p className="mt-2 max-w-sm text-[0.95rem] leading-relaxed opacity-85">{s.b}</p>
+              </div>
+              <span aria-hidden className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/15 transition-transform duration-700 group-hover:scale-150" />
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* Closing */}
+      <section className="relative overflow-hidden bg-forest px-5 py-28 text-center text-cream sm:px-10">
+        <div aria-hidden data-speed="0.15" className="absolute left-1/2 top-0 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(217,79,43,0.35),transparent)]" />
+        <h2 data-reveal="scale" className="relative font-display text-[clamp(2.6rem,8vw,6.5rem)] leading-[0.98]">
+          {t('closingTitle')}
+        </h2>
+        <button type="button" onClick={enter} data-reveal className="tap relative mt-10 rounded-full bg-sun px-9 py-3 text-[1rem] font-medium text-forest transition-transform hover:-translate-y-0.5">
+          {t('chooseShop')}
+        </button>
+        <p className="relative mt-12 text-[0.85rem] text-botanical">
+          Run a store?{' '}
+          <Link to="/owner/login" className="underline underline-offset-4 hover:text-cream">
+            Sign in to your store
+          </Link>
           <span aria-hidden> · </span>
-          <Link to="/delivery/login" className="underline underline-offset-4 hover:text-cream">Delivery partners</Link>
+          <Link to="/delivery/login" className="underline underline-offset-4 hover:text-cream">
+            Delivery partners
+          </Link>
           <span aria-hidden> · </span>
-          <Link to="/admin/login" className="underline underline-offset-4 hover:text-cream">Platform admin</Link>
+          <Link to="/admin/login" className="underline underline-offset-4 hover:text-cream">
+            Platform admin
+          </Link>
         </p>
-
-        <div className="reveal mt-8 h-px w-full max-w-xs bg-cream/15" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label={t('loading')}>
-          <div ref={barRef} className="h-full origin-left bg-terracotta" style={{ transform: 'scaleX(0)' }} />
-        </div>
-      </main>
+      </section>
     </div>
   )
 }

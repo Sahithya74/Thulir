@@ -1,0 +1,15 @@
+/* Marquee rows on the landing page */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee {
+  animation: marquee 28s linear infinite;
+}
+.marquee-rev {
+  animation: marquee 34s linear infinite reverse;
+}
